@@ -9,9 +9,9 @@ namespace PolyAxisGraphs_Backend
 {
     public class Settings
     {
-        public string initialdirectory { get; set; }
-        public LanguagePack defaultlang { get; set; }
-        public LanguagePack currentlang { get; set; }
+        public string? initialdirectory { get; set; }
+        public LanguagePack? defaultlang { get; set; }
+        public LanguagePack? currentlang { get; set; }
         public string file { get; set; }
 
         public Settings(string _file) 

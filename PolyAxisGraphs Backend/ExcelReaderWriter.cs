@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,6 +11,11 @@ namespace PolyAxisGraphs_Backend
 {
     public class ExcelReaderWriter
     {
+        public struct Cell
+        {
+            public string? value { get; set; }
+            public Color? color { get; set; }
+        }
         excel.Application? application { get; set; }
         excel.Workbook? workbook { get; set; }
         excel.Sheets? sheets { get; set; }
@@ -26,26 +33,91 @@ namespace PolyAxisGraphs_Backend
             opened = false;
         }
 
-        public string FindNextFileName()
+        public static string? FindNextFileName(Settings set)
         {
-            string ret = string.Empty;
             int i = 0;
-            bool cont = true;
 
-            while (cont)
+            while (set.initialdirectory is not null)
             {
-                string path = settings.initialdirectory + "TestExcel" + i + ".xlsx";
+                string path = set.initialdirectory + "TestExcel" + i + ".xlsx";
                 if (!File.Exists(path))
                 {
-                    ret = path;
-                    cont = false;
+                    return path;
                 }
                 else
                 {
                     i++;
                 }
             }
-            return ret;
+            return null;
+        }
+
+        public Cell ReadCell(int row, int col)
+        {
+            string? value = null;
+            Color? color = null;
+
+            EstablishConnection();
+
+            if (opened && worksheet is not null)
+            {
+                try
+                {
+                    excel.Range range = (excel.Range)worksheet.Cells[row, col];
+                    value = range.Value2.ToString();
+                    excel.Interior interior = range.Interior;
+                    color = ColorTranslator.FromOle((int)interior.Color);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.ToString());
+                }
+            }
+
+            Disconnect();
+
+            return new Cell() { value = value, color = color };
+        }
+
+        public void WriteCell(int row , int col, object value) 
+        {
+            EstablishConnection();
+
+            if(opened && worksheet is not null)
+            {
+                try
+                {
+                    excel.Range range = (excel.Range)worksheet.Cells[row, col];
+                    range.Value2 = value;
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.ToString());
+                }
+            }
+
+            Disconnect();
+        }
+
+        public void SetColor(int row, int col, Color color)
+        {
+            EstablishConnection();
+
+            if(opened && worksheet is not null)
+            {
+                try
+                {
+                    excel.Range range = (excel.Range)worksheet.Cells[row, col];
+                    excel.Interior interior = range.Interior;
+                    interior.Color = ColorTranslator.ToOle(color);
+                }
+                catch (Exception ex) 
+                {
+                    Debug.WriteLine(ex.ToString());
+                }
+            }
+
+            Disconnect();
         }
 
         private void EstablishConnection()
@@ -60,9 +132,9 @@ namespace PolyAxisGraphs_Backend
                     worksheet = (excel.Worksheet?)sheets[1];
                     opened = true;
                 }
-                catch
+                catch (Exception ex)
                 {
-
+                    Debug.WriteLine(ex.ToString());
                 }
             }
             else
@@ -75,9 +147,9 @@ namespace PolyAxisGraphs_Backend
                     worksheet = (excel.Worksheet?)workbook.ActiveSheet;
                     opened = true;
                 }
-                catch
+                catch (Exception ex)
                 {
-
+                    Debug.WriteLine(ex.ToString());
                 }
             }
         }
@@ -104,9 +176,9 @@ namespace PolyAxisGraphs_Backend
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                
+                Debug.WriteLine(ex.ToString());
             }
         }
 
@@ -121,9 +193,9 @@ namespace PolyAxisGraphs_Backend
                     opened = false;
                 }
             }
-            catch
+            catch (Exception ex)
             {
-
+                Debug.WriteLine(ex.ToString());
             }
         }
     }
