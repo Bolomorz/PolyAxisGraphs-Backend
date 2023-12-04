@@ -208,7 +208,7 @@ namespace PolyAxisGraphs_Backend
         private void SaveFileXlsx()
         {
             ExcelReaderWriter erw = new ExcelReaderWriter(file, settings);
-
+            erw.EstablishConnection();
             Color[] colors = { Color.Red, Color.Blue, Color.Green, Color.Orange, Color.Brown, Color.DarkCyan, Color.Turquoise, Color.Purple, Color.Yellow, Color.Black };
             erw.WriteCell(1, 2, "XValues");
             erw.WriteCell(2, 2, XAxis.name);
@@ -247,6 +247,7 @@ namespace PolyAxisGraphs_Backend
                 row++;
                 count++;
             }
+            erw.Disconnect();
         }
     }
 

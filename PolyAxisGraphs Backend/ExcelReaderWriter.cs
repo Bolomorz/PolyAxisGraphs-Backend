@@ -5,7 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using excel = Microsoft.Office.Interop.Excel;
+using XCL = Microsoft.Office.Interop.Excel;
 
 namespace PolyAxisGraphs_Backend
 {
@@ -16,10 +16,10 @@ namespace PolyAxisGraphs_Backend
             public string? value { get; set; }
             public Color? color { get; set; }
         }
-        excel.Application? application { get; set; }
-        excel.Workbook? workbook { get; set; }
-        excel.Sheets? sheets { get; set; }
-        excel.Worksheet? worksheet { get; set; }
+        XCL.Application? application { get; set; }
+        XCL.Workbook? workbook { get; set; }
+        XCL.Sheets? sheets { get; set; }
+        XCL.Worksheet? worksheet { get; set; }
         bool opened { get; set; }
 
         string file { get; set; }
@@ -57,15 +57,13 @@ namespace PolyAxisGraphs_Backend
             string? value = null;
             Color? color = null;
 
-            EstablishConnection();
-
             if (opened && worksheet is not null)
             {
                 try
                 {
-                    excel.Range range = (excel.Range)worksheet.Cells[row, col];
+                    XCL.Range range = (XCL.Range)worksheet.Cells[row, col];
                     value = range.Value2.ToString();
-                    excel.Interior interior = range.Interior;
+                    XCL.Interior interior = range.Interior;
                     color = ColorTranslator.FromOle((int)interior.Color);
                 }
                 catch (Exception ex)
@@ -73,21 +71,16 @@ namespace PolyAxisGraphs_Backend
                     Debug.WriteLine(ex.ToString());
                 }
             }
-
-            Disconnect();
-
             return new Cell() { value = value, color = color };
         }
 
         public void WriteCell(int row , int col, object value) 
         {
-            EstablishConnection();
-
             if(opened && worksheet is not null)
             {
                 try
                 {
-                    excel.Range range = (excel.Range)worksheet.Cells[row, col];
+                    XCL.Range range = (XCL.Range)worksheet.Cells[row, col];
                     range.Value2 = value;
                 }
                 catch (Exception ex)
@@ -95,20 +88,16 @@ namespace PolyAxisGraphs_Backend
                     Debug.WriteLine(ex.ToString());
                 }
             }
-
-            Disconnect();
         }
 
         public void SetColor(int row, int col, Color color)
         {
-            EstablishConnection();
-
             if(opened && worksheet is not null)
             {
                 try
                 {
-                    excel.Range range = (excel.Range)worksheet.Cells[row, col];
-                    excel.Interior interior = range.Interior;
+                    XCL.Range range = (XCL.Range)worksheet.Cells[row, col];
+                    XCL.Interior interior = range.Interior;
                     interior.Color = ColorTranslator.ToOle(color);
                 }
                 catch (Exception ex) 
@@ -116,20 +105,18 @@ namespace PolyAxisGraphs_Backend
                     Debug.WriteLine(ex.ToString());
                 }
             }
-
-            Disconnect();
         }
 
-        private void EstablishConnection()
+        public void EstablishConnection()
         {
             if (File.Exists(file))
             {
                 try
                 {
-                    application = new excel.Application();
+                    application = new XCL.Application();
                     workbook = application.Workbooks.Open(file);
                     sheets = workbook.Sheets;
-                    worksheet = (excel.Worksheet?)sheets[1];
+                    worksheet = (XCL.Worksheet?)sheets[1];
                     opened = true;
                 }
                 catch (Exception ex)
@@ -141,10 +128,10 @@ namespace PolyAxisGraphs_Backend
             {
                 try
                 {
-                    application = new excel.Application();
+                    application = new XCL.Application();
                     workbook = application.Workbooks.Add();
                     sheets = workbook.Sheets;
-                    worksheet = (excel.Worksheet?)workbook.ActiveSheet;
+                    worksheet = (XCL.Worksheet?)workbook.ActiveSheet;
                     opened = true;
                 }
                 catch (Exception ex)
@@ -154,7 +141,7 @@ namespace PolyAxisGraphs_Backend
             }
         }
 
-        private void Disconnect()
+        public void Disconnect()
         {
             SaveChanges();
             Quit();
