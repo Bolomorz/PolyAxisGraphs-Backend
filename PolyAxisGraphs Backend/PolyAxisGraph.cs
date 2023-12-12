@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Schema;
+using System.Diagnostics;
 
 namespace PolyAxisGraphs_Backend
 {
@@ -155,19 +156,21 @@ namespace PolyAxisGraphs_Backend
 
         public void ReadData()
         {
+            Debug.WriteLine(filepath);
             bool exists = File.Exists(filepath);
             string extension = Path.GetExtension(filepath);
-
+            Debug.WriteLine("ReadData: " + exists + " " + extension);
             if(exists && extension == ".txt")
             {
                 series.Clear();
-
+                Debug.WriteLine("exists + extension == .txt is true");
                 lastx = double.MinValue;
 
                 int count = 0;
 
                 foreach(string line in File.ReadLines(filepath))
                 {
+                    Debug.WriteLine($"{line}");
                     if(count == 0)
                     {
                         ReadFirstLine(line, ' ');
