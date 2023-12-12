@@ -156,10 +156,8 @@ namespace PolyAxisGraphs_Backend
 
         public void ReadData()
         {
-            Debug.WriteLine(filepath);
             bool exists = File.Exists(filepath);
             string extension = Path.GetExtension(filepath);
-            Debug.WriteLine("ReadData: " + exists + " " + extension);
             if(exists && extension == ".txt")
             {
                 series.Clear();

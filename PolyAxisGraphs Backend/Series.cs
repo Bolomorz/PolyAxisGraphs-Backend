@@ -60,7 +60,14 @@ namespace PolyAxisGraphs_Backend
             CompareMin(y);
             setmin = min;
             setmax = max;
-            interval = (double)(max - min) / 20.0;
+            if (settings.chartgridinterval is not null)
+            {
+                interval = (double)(setmax - setmin) / (double)settings.chartgridinterval;
+            }
+            else
+            {
+                interval = (double)(setmax - setmin) / 20.0;
+            }
         }
 
         public void SetMax(double _max)
@@ -68,7 +75,14 @@ namespace PolyAxisGraphs_Backend
             if(_max > setmin)
             {
                 setmax = _max;
-                interval = (double)(setmax - setmin) / 20.0;
+                if (settings.chartgridinterval is not null)
+                {
+                    interval = (double)(setmax - setmin) / (double)settings.chartgridinterval;
+                }
+                else
+                {
+                    interval = (double)(setmax - setmin) / 20.0;
+                }
             }
         }
 
@@ -77,20 +91,41 @@ namespace PolyAxisGraphs_Backend
             if(_min < setmax)
             {
                 setmin = _min;
-                interval = (double)(setmax - setmin) / 20.0;
+                if (settings.chartgridinterval is not null)
+                {
+                    interval = (double)(setmax - setmin) / (double)settings.chartgridinterval;
+                }
+                else
+                {
+                    interval = (double)(setmax - setmin) / 20.0;
+                }
             }
         }
 
         public void ResetMax()
         {
             setmax = max;
-            interval = (double)(setmax - setmin) / 20.0;
+            if (settings.chartgridinterval is not null)
+            {
+                interval = (double)(setmax - setmin) / (double)settings.chartgridinterval;
+            }
+            else
+            {
+                interval = (double)(setmax - setmin) / 20.0;
+            }
         }
 
         public void ResetMin()
         {
             setmin = min;
-            interval = (double)(setmax - setmin) / 20.0;
+            if (settings.chartgridinterval is not null)
+            {
+                interval = (double)(setmax - setmin) / (double)settings.chartgridinterval;
+            }
+            else
+            {
+                interval = (double)(setmax - setmin) / 20.0;
+            }
         }
 
         public List<FunctionString> GetFunction()
