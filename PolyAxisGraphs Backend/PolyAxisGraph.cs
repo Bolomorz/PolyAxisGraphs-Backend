@@ -15,6 +15,7 @@ namespace PolyAxisGraphs_Backend
     {
         public List<Series> series { get; set; }
         public string xaxisname { get; set; }
+        public string charttitle { get; set; }
 
         public Settings settings { get; set; }
 
@@ -37,6 +38,7 @@ namespace PolyAxisGraphs_Backend
             defx1 = 0;
             defx2 = 0;
             xaxisname = "";
+            charttitle = "";
         }
 
         public static int ReadStringToInt(string val)
@@ -147,6 +149,11 @@ namespace PolyAxisGraphs_Backend
                 default:
                     return 0;
             }
+        }
+
+        public void SetChartTitle(string title)
+        {
+            charttitle = title;
         }
 
         public void SetLanguage(string file)
