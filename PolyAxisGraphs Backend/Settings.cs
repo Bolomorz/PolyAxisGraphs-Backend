@@ -17,6 +17,7 @@ namespace PolyAxisGraphs_Backend
         public int? charttitlefontsize { get; set; }
         public string? fontfamily { get; set; }
         public int? chartgridinterval { get; set; }
+        public int? yaxiswidth { get; set; }
 
         public string file { get; set; }
 
@@ -46,6 +47,7 @@ namespace PolyAxisGraphs_Backend
                                 case "charttitlefontsize": charttitlefontsize = int.Parse(strings[1]); break;
                                 case "fontfamily": fontfamily = strings[1]; break;
                                 case "chartgridinterval": chartgridinterval = int.Parse(strings[1]); break;
+                                case "yaxiswidth": yaxiswidth = int.Parse(strings[1]); break;
                             }
                         }
                     }
@@ -57,7 +59,7 @@ namespace PolyAxisGraphs_Backend
             }
         }
 
-        public void WriteSettings(string _initialdirectory, string _languagefile, string _controlfontsize, string _chartfontsize, string _charttitlefontsize, string _fontfamily, string _chartgridinterval) 
+        public void WriteSettings(string _initialdirectory, string _languagefile,string _yaxiswidth, string _controlfontsize, string _chartfontsize, string _charttitlefontsize, string _fontfamily, string _chartgridinterval) 
         {
             if (File.Exists(file))
             {
@@ -79,6 +81,7 @@ namespace PolyAxisGraphs_Backend
                 writer.WriteLine("charttitlefontsize=" + _charttitlefontsize);
                 writer.WriteLine("fontfamily=" + _fontfamily);
                 writer.WriteLine("chartgridinterval=" + _chartgridinterval);
+                writer.WriteLine("yaxiswidth=" + _yaxiswidth);
             }
 
             ReadSettings();
