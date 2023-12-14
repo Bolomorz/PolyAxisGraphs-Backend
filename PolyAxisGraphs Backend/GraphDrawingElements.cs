@@ -34,12 +34,19 @@ namespace PolyAxisGraphs_Backend
             public double x, y;
         }
 
+        public struct Seriespoint
+        {
+            public Series series;
+            public Point point;
+        }
+
         public struct ChartData
         {
             public string? err;
-            public Rectangle? titlearea, datearea, chartarea, legendarea, yaxisarea;
+            public Rectangle? titlearea, datearea, chartarea, legendarea, yaxisarea, functionarea;
             public List<Line>? lines;
             public List<Text>? texts;
+            public List<List<Series.FunctionString>>? functions;
         }
 
         protected double canvaswidth { get; set; }
@@ -53,24 +60,61 @@ namespace PolyAxisGraphs_Backend
         protected Rectangle _chartarea { get; set; }
         protected Rectangle _legendarea { get; set; }
         protected Rectangle _yaxisarea { get; set; }
+        protected Rectangle _functionarea { get; set; }
 
         protected List<Line> _lines {  get; set; }
         protected List<Text> _texts { get; set; }
-        
+        protected List<List<Series.FunctionString>> _functions { get; set; }
+
         public GraphDrawingElements(double _canvaswidth, double _canvasheight, PolyAxisGraph _pag, Settings _settings) 
         {
             canvaswidth = _canvaswidth;
             canvasheight = _canvasheight;
             pag = _pag;
             settings = _settings;
-            seriescount = pag.series.Count;
+            seriescount = 0;
+            foreach(var series in pag.series)
+            {
+                if(series.active) seriescount++;
+            }
             _lines = new List<Line>();
             _texts = new List<Text>();
+            _functions = new List<List<Series.FunctionString>>();
             _titlearea = new Rectangle();
             _datearea = new Rectangle();
             _legendarea = new Rectangle();
             _yaxisarea = new Rectangle();
             _chartarea = new Rectangle();
+            _functionarea = new Rectangle();
+        }
+
+        public Seriespoint? TranslateChartPointToSeriesPoint(Point point)
+        {
+            if(point.x < _chartarea.left || point.x > _chartarea.right || point.y < _chartarea.top || point.y > _chartarea.bottom) return null;
+
+            foreach (var _series in pag.series)
+            {
+                if (_series.active)
+                {
+                    for (int i = 0; i < _series.XValues.Count; i++)
+                    {
+                        var xvalue = _series.XValues[i];
+                        var yvalue = _series.YValues[i];
+                        var chartpoint = TranslateSeriesPointToChartPoint(xvalue, yvalue, pag.x1, pag.x2, _series.setmin, _series.setmax);
+                        if (chartpoint is not null)
+                        {
+                            Point cp = (Point)chartpoint;
+                            if (cp.x == point.x && cp.y == point.y) return new Seriespoint()
+                            {
+                                series = _series,
+                                point = new Point() { x = xvalue, y = yvalue }
+                            };
+                        }
+                    }
+                }
+            }
+
+            return null;
         }
 
         public ChartData CalculateChart()
@@ -86,11 +130,16 @@ namespace PolyAxisGraphs_Backend
             _err = (settings.chartgridinterval is null) ? AddChart(20, pag.x1, pag.x2, fontsize) : AddChart((int)settings.chartgridinterval, pag.x1, pag.x2, fontsize);
             if (_err is not null) return new ChartData() { err = _err };
 
-            double xareastart = _yaxisarea.left;
+            double xarea = _yaxisarea.left;
             double xareaintervall = (settings.yaxiswidth is null) ? 20 : (double)settings.yaxiswidth;
             foreach(var series in pag.series)
             {
-                // TODO FINISH
+                if(series.active)
+                {
+                    _err = (settings.chartgridinterval is null) ? AddSeries(series, 20, pag.x1, pag.x2, fontsize, xarea) : AddSeries(series, (int)settings.chartgridinterval, pag.x1, pag.x2, fontsize, xarea);
+                    if (_err is not null) return new ChartData() { err = _err };
+                    xarea += xareaintervall;
+                }
             }
 
             return new ChartData()
@@ -101,8 +150,10 @@ namespace PolyAxisGraphs_Backend
                 legendarea = _legendarea,
                 yaxisarea = _yaxisarea,
                 chartarea = _chartarea,
+                functionarea = _functionarea,
                 lines = _lines,
                 texts = _texts,
+                functions = _functions,
             };
         }
 
@@ -125,12 +176,23 @@ namespace PolyAxisGraphs_Backend
             while (start.y >= _yaxisarea.top)
             {
                 AddLine(start, end, series.color, 0.5);
-                AddText(start.y, start.y + length*4, start.x - fontsize, start.x, text.ToString(), fontsize);
+                AddText(start.x, start.x + length*4, start.y - fontsize, start.y, text.ToString(), fontsize);
                 start.y -= yintervall;
                 end.y -= yintervall;
                 text += numintervall;
                 text = Math.Round(text, 2);
             }
+
+            //Add Legend
+            start = new Point() { x = xarea, y = _legendarea.bottom };
+            end = new Point() { x = xarea, y = _legendarea.top };
+            AddLine(start, end, series.color, 1);
+            double midpoint = (_legendarea.bottom + _legendarea.top) / 2;
+            AddText(xarea, start.x + length * 4, midpoint - fontsize / 2, midpoint + fontsize / 2, series.name, fontsize);
+
+            //Add Functionstring
+            var function = series.GetFunction();
+            _functions.Add(function);
 
             //Draw Series
             List<Point> seriespoints = new List<Point>();
@@ -259,7 +321,7 @@ namespace PolyAxisGraphs_Backend
 
         private void AddDate(double fontsize)
         {
-            double midpoint = (_datearea.bottom - _datearea.top) / 2;
+            double midpoint = (_datearea.bottom + _datearea.top) / 2;
             var today = DateTime.Today;
             if (fontsize + 2 < _datearea.height)
             {
@@ -273,7 +335,7 @@ namespace PolyAxisGraphs_Backend
 
         private void AddTitle(double fontsize, string title)
         {
-            double midpoint = (_titlearea.bottom - _titlearea.top) / 2;
+            double midpoint = (_titlearea.bottom + _titlearea.top) / 2;
             if (fontsize + 2 < _titlearea.height)
             {
                 AddText(_titlearea.left + 1, _titlearea.right - 1, midpoint - fontsize - 1, midpoint + fontsize + 1, title, fontsize);
@@ -295,20 +357,23 @@ namespace PolyAxisGraphs_Backend
              * 
              * legendarea   (x: 1% - d      | y: 1% - 20%)
              * titlearea    (x: d - 90%     | y: 1% - 20%)
-             * datearea     (x: 90% - 99%   | y: 1% - 20%)
+             * datearea     (x: 91% - 99%   | y: 1% - 20%)
              * yaxisarea    (x: 1% - d      | y: 21% - 95%)
-             * chartarea    (x: d - 95%     | y: 21% - 95%)
+             * chartarea    (x: d - 90%     | y: 21% - 95%)
+             * functionarea (x: 91% - 99 %  | y: 21% - 95%)
              */
 
             double d = (settings.yaxiswidth is null) ? seriescount * 20 : seriescount * (double)settings.yaxiswidth;
-            if (d > 0.5 * canvaswidth) return "canvas area to small to display graph";
+            if (d > 0.5 * canvaswidth) return "canvas area too small to display graph";
+            if (d == 0) d = 20;
             d = d / canvaswidth;
 
             CalculateRectangle(_legendarea, 0.01, d, 0.01, 0.2);
-            CalculateRectangle(_titlearea, d + 0.05, 0.9, 0.01, 0.2);
+            CalculateRectangle(_titlearea, d + 0.01, 0.9, 0.01, 0.2);
             CalculateRectangle(_datearea, 0.91, 0.99, 0.01, 0.2);
             CalculateRectangle(_yaxisarea, 0.01, d, 0.21, 0.95);
-            CalculateRectangle(_chartarea, d + 0.05, 0.95, 0.21, 0.95);
+            CalculateRectangle(_chartarea, d + 0.01, 0.90, 0.21, 0.95);
+            CalculateRectangle(_functionarea, 0.91, 0.99, 0.21, 0.95);
 
             return null;
         }
@@ -326,7 +391,7 @@ namespace PolyAxisGraphs_Backend
         private void AddLine(Point _start, Point _end, Color _color, double _thickness)
         {
             if (_start.x == _end.x && _start.y == _end.y) return;
-            _lines.Add( new Line() 
+            _lines.Add(new Line() 
             {
                 start = _start,
                 end = _end,
@@ -337,6 +402,7 @@ namespace PolyAxisGraphs_Backend
 
         private void AddText(double _left, double _right, double _top, double _bottom, string _text, double _fontsize) 
         {
+            if(_left == _right || _bottom - _top < _fontsize) return;
             _texts.Add(new Text()
             {
                 left = _left,
