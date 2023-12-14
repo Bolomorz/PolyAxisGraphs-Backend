@@ -275,7 +275,7 @@ namespace PolyAxisGraphs_Backend
             {
                 for(int i = 1; i < values.Length; i++)
                 {
-                    series[i-1].Add(xval, ReadStringToDouble(values[i]));
+                    series[i - 1].Add(xval, ReadStringToDouble(values[i]));
                 }
                 lastx = xval;
             }
