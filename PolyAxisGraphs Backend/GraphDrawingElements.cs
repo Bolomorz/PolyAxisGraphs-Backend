@@ -40,6 +40,13 @@ namespace PolyAxisGraphs_Backend
             public Point point;
         }
 
+        public struct SeriesData
+        {
+            public Series series;
+            public List<Point> seriespoint;
+            public List<Point> chartpoint;
+        }
+
         public struct ChartData
         {
             public string? err;
@@ -65,6 +72,7 @@ namespace PolyAxisGraphs_Backend
         protected List<Line> _lines {  get; set; }
         protected List<Text> _texts { get; set; }
         protected List<List<Series.FunctionString>> _functions { get; set; }
+        protected List<SeriesData> _seriesdata { get; set; }
 
         public GraphDrawingElements(double _canvaswidth, double _canvasheight, PolyAxisGraph _pag, Settings _settings) 
         {
@@ -80,6 +88,7 @@ namespace PolyAxisGraphs_Backend
             _lines = new List<Line>();
             _texts = new List<Text>();
             _functions = new List<List<Series.FunctionString>>();
+            _seriesdata = new List<SeriesData>();
             _titlearea = new Rectangle();
             _datearea = new Rectangle();
             _legendarea = new Rectangle();
@@ -92,24 +101,19 @@ namespace PolyAxisGraphs_Backend
         {
             if(point.x < _chartarea.left || point.x > _chartarea.right || point.y < _chartarea.top || point.y > _chartarea.bottom) return null;
 
-            foreach (var _series in pag.series)
+            foreach (var _series in _seriesdata)
             {
-                if (_series.active)
+                if (_series.series.active)
                 {
-                    for (int i = 0; i < _series.XValues.Count; i++)
+                    for (int i = 0; i < _series.seriespoint.Count; i++)
                     {
-                        var xvalue = _series.XValues[i];
-                        var yvalue = _series.YValues[i];
-                        var chartpoint = TranslateSeriesPointToChartPoint(xvalue, yvalue, pag.x1, pag.x2, _series.setmin, _series.setmax);
-                        if (chartpoint is not null)
+                        var seriespoint = _series.seriespoint[i];
+                        var chartpoint = _series.chartpoint[i];
+                        if (chartpoint.x == point.x && chartpoint.y == point.y) return new Seriespoint()
                         {
-                            Point cp = (Point)chartpoint;
-                            if (cp.x == point.x && cp.y == point.y) return new Seriespoint()
-                            {
-                                series = _series,
-                                point = new Point() { x = xvalue, y = yvalue }
-                            };
-                        }
+                            series = _series.series,
+                            point = seriespoint,
+                        };
                     }
                 }
             }
