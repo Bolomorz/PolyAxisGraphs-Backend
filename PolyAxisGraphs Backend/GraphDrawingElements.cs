@@ -121,8 +121,23 @@ namespace PolyAxisGraphs_Backend
             return null;
         }
 
+        public void ChangeTitle(string title, double fontsize)
+        {
+            if(_texts.Count > 0)
+            {
+                var text = _texts[0];
+                text.text = title;
+                text.fontsize = fontsize;
+            }
+        }
+
         public ChartData CalculateChart()
         {
+            _lines.Clear();
+            _functions.Clear();
+            _texts.Clear();
+            _seriesdata.Clear();
+            
             var _err = CalculateChartAreas();
             if (_err is not null) return new ChartData() { err = _err};
             
@@ -210,11 +225,14 @@ namespace PolyAxisGraphs_Backend
             {
                 Point? seriesstart = null;
                 int i = 0;
+                SeriesData sd = new SeriesData() { series = series, chartpoint = new List<Point>(), seriespoint = new List<Point>() };
                 while(seriesstart is null)
                 {
                     seriesstart = TranslateSeriesPointToChartPoint(seriespoints[i].x, seriespoints[i].y, x1, x2, series.setmin, series.setmax);
                     i++;
                 }
+                sd.seriespoint.Add(seriespoints[i - 1]);
+                sd.chartpoint.Add((Point)seriesstart);
                 while(i < seriespoints.Count)
                 {
                     var seriesend = TranslateSeriesPointToChartPoint(seriespoints[i].x, seriespoints[i].y, x1, x2, series.setmin, series.setmax);
@@ -222,9 +240,12 @@ namespace PolyAxisGraphs_Backend
                     {
                         AddLine((Point)seriesstart, (Point)seriesend, series.color, 1);
                         seriesstart = seriesend;
+                        sd.seriespoint.Add(seriespoints[i]);
+                        sd.chartpoint.Add((Point)seriesstart);
                     }
                     i++;
                 }
+                _seriesdata.Add(sd);
             }
 
             //Draw Regressionfunction
