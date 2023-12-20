@@ -168,14 +168,12 @@ namespace PolyAxisGraphs_Backend
             if(exists && extension == ".txt")
             {
                 series.Clear();
-                Debug.WriteLine("exists + extension == .txt is true");
                 lastx = double.MinValue;
 
                 int count = 0;
 
                 foreach(string line in File.ReadLines(filepath))
                 {
-                    Debug.WriteLine($"{line}");
                     if(count == 0)
                     {
                         ReadFirstLine(line, ' ');

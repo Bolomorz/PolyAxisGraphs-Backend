@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Microsoft.Office.Interop.Excel;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -137,26 +139,35 @@ namespace PolyAxisGraphs_Backend
             _functions.Clear();
             _texts.Clear();
             _seriesdata.Clear();
+
+            Debug.WriteLine("Calculate Chartareas...");
             
             var _err = CalculateChartAreas();
             if (_err is not null) return new ChartData() { err = _err};
-            
+            Debug.WriteLine(_err);
+
+            Debug.WriteLine("Add Title and Date...");
             double fontsize = (settings.chartfontsize is null) ? 8 : (double)settings.chartfontsize;
             double titlefontsize = (settings.charttitlefontsize is null) ? 15 : (double)settings.charttitlefontsize;
             AddTitle(titlefontsize, pag.charttitle);
             AddDate(fontsize);
-            
+
+            Debug.WriteLine("Add Chart...");
             _err = (settings.chartgridinterval is null) ? AddChart(20, pag.x1, pag.x2, fontsize) : AddChart((int)settings.chartgridinterval, pag.x1, pag.x2, fontsize);
             if (_err is not null) return new ChartData() { err = _err };
+            Debug.WriteLine(_err);
 
+            Debug.WriteLine("Add Series...");
             double xarea = _yaxisarea.left;
             double xareaintervall = (settings.yaxiswidth is null) ? 20 : (double)settings.yaxiswidth;
             foreach(var series in pag.series)
             {
                 if(series.active)
                 {
+                    Debug.WriteLine("Add active series...");
                     _err = (settings.chartgridinterval is null) ? AddSeries(series, 20, pag.x1, pag.x2, fontsize, xarea) : AddSeries(series, (int)settings.chartgridinterval, pag.x1, pag.x2, fontsize, xarea);
                     if (_err is not null) return new ChartData() { err = _err };
+                    Debug.WriteLine(_err);
                     xarea += xareaintervall;
                 }
             }
@@ -180,13 +191,15 @@ namespace PolyAxisGraphs_Backend
         {
             double yintervall = _yaxisarea.height / gridintervallcount;
             double numintervall = (series.setmax - series.setmin) / gridintervallcount;
-            if(yintervall < fontsize) return "gridintervall too large to display graph. choose smaller chartgridintervall";
+            if(yintervall < fontsize) return String.Format("gridintervall too large to display graph. choose smaller chartgridintervall.\nAddSeries(): yintervall {0}, fontsize {1}",yintervall, fontsize);
 
+            Debug.WriteLine("<<< add y axis");
             //Add Y Axis
             Point start = new Point() { x = xarea, y = _yaxisarea.bottom };
             Point end = new Point() { x = xarea, y = _yaxisarea.top };
             AddLine(start, end, series.color, 1);
 
+            Debug.WriteLine("<<< add y axis grid + text");
             //Add Y Axis Grid + Text
             double length = (settings.yaxiswidth is null) ? 5 : (double)settings.yaxiswidth/4;
             start = new Point() { x = xarea, y = _yaxisarea.bottom };
@@ -202,6 +215,7 @@ namespace PolyAxisGraphs_Backend
                 text = Math.Round(text, 2);
             }
 
+            Debug.WriteLine("<<< add legend");
             //Add Legend
             start = new Point() { x = xarea, y = _legendarea.bottom };
             end = new Point() { x = xarea, y = _legendarea.top };
@@ -209,10 +223,12 @@ namespace PolyAxisGraphs_Backend
             double midpoint = (_legendarea.bottom + _legendarea.top) / 2;
             AddText(xarea, start.x + length * 4, midpoint - fontsize / 2, midpoint + fontsize / 2, series.name, fontsize);
 
+            Debug.WriteLine("<<< add functionstring");
             //Add Functionstring
             var function = series.GetFunction();
             _functions.Add(function);
 
+            Debug.WriteLine("<<< draw series");
             //Draw Series
             List<Point> seriespoints = new List<Point>();
             for(int i = 0; i < series.XValues.Count; i++)
@@ -226,28 +242,32 @@ namespace PolyAxisGraphs_Backend
                 Point? seriesstart = null;
                 int i = 0;
                 SeriesData sd = new SeriesData() { series = series, chartpoint = new List<Point>(), seriespoint = new List<Point>() };
-                while(seriesstart is null)
+                while(seriesstart is null && i < seriespoints.Count)
                 {
                     seriesstart = TranslateSeriesPointToChartPoint(seriespoints[i].x, seriespoints[i].y, x1, x2, series.setmin, series.setmax);
                     i++;
                 }
-                sd.seriespoint.Add(seriespoints[i - 1]);
-                sd.chartpoint.Add((Point)seriesstart);
-                while(i < seriespoints.Count)
+                if (seriesstart is not null)
                 {
-                    var seriesend = TranslateSeriesPointToChartPoint(seriespoints[i].x, seriespoints[i].y, x1, x2, series.setmin, series.setmax);
-                    if(seriesend is not null)
+                    sd.seriespoint.Add(seriespoints[i - 1]);
+                    sd.chartpoint.Add((Point)seriesstart);
+                    while (i < seriespoints.Count)
                     {
-                        AddLine((Point)seriesstart, (Point)seriesend, series.color, 1);
-                        seriesstart = seriesend;
-                        sd.seriespoint.Add(seriespoints[i]);
-                        sd.chartpoint.Add((Point)seriesstart);
+                        var seriesend = TranslateSeriesPointToChartPoint(seriespoints[i].x, seriespoints[i].y, x1, x2, series.setmin, series.setmax);
+                        if (seriesend is not null)
+                        {
+                            AddLine((Point)seriesstart, (Point)seriesend, series.color, 1);
+                            seriesstart = seriesend;
+                            sd.seriespoint.Add(seriespoints[i]);
+                            sd.chartpoint.Add((Point)seriesstart);
+                        }
+                        i++;
                     }
-                    i++;
+                    _seriesdata.Add(sd);
                 }
-                _seriesdata.Add(sd);
             }
 
+            Debug.WriteLine("<<< draw function");
             //Draw Regressionfunction
             if (series.showfunction && series.rft != Regression.FunctionType.NaF)
             {
@@ -264,26 +284,29 @@ namespace PolyAxisGraphs_Backend
                 {
                     Point? functionstart = null;
                     int i = 0;
-                    while(functionstart is null)
+                    while(functionstart is null && i < functionpoints.Count)
                     {
                         functionstart = TranslateSeriesPointToChartPoint(functionpoints[i].x, functionpoints[i].y, x1, x2, series.setmin, series.setmax);
                         i++;
                     }
-                    bool draw = true;
-                    while(i < functionpoints.Count)
+                    if (functionstart is not null)
                     {
-                        var functionend = TranslateSeriesPointToChartPoint(functionpoints[i].x, functionpoints[i].y, x1, x2, series.setmin, series.setmax);
-                        if(functionend is not null && draw)
+                        bool draw = true;
+                        while (i < functionpoints.Count)
                         {
-                            AddLine((Point)functionstart, (Point)functionend, series.color, 0.5);
-                            functionstart = functionend;
-                            draw = false;
+                            var functionend = TranslateSeriesPointToChartPoint(functionpoints[i].x, functionpoints[i].y, x1, x2, series.setmin, series.setmax);
+                            if (functionend is not null && draw)
+                            {
+                                AddLine((Point)functionstart, (Point)functionend, series.color, 0.5);
+                                functionstart = functionend;
+                                draw = false;
+                            }
+                            else if (!draw)
+                            {
+                                draw = true;
+                            }
+                            i++;
                         }
-                        else if (!draw)
-                        {
-                            draw = true;
-                        }
-                        i++;
                     }
                 }
             }
@@ -308,28 +331,30 @@ namespace PolyAxisGraphs_Backend
 
         private string? AddChart(int gridintervallcount, int x1, int x2, double fontsize)
         {
-            double xintervall = _chartarea.width / gridintervallcount;
-            double yintervall = _chartarea.height / gridintervallcount;
+            double xintervall = _chartarea.width / (double)gridintervallcount;
+            double yintervall = _chartarea.height / (double)gridintervallcount;
             int numintervall = (x2 - x1) / gridintervallcount;
-            if(xintervall < 1 ||  yintervall < fontsize) return "gridintervall too large to display graph. choose smaller chartgridintervall";
-
+            if(xintervall < 1 ||  yintervall < fontsize) String.Format("gridintervall too large to display graph. choose smaller chartgridintervall.\nAddChart(): yintervall {0}, fontsize {1}, xintervall {2}", yintervall, fontsize, xintervall);
+            
             //Add Y Axis
             Point start = new Point() { x = _chartarea.left, y = _chartarea.top };
             Point end = new Point() { x = _chartarea.left, y = _chartarea.bottom };
             int text = x1;
             AddLine(start, end, Color.Black, 1);
             if (fontsize > (canvasheight - 1) - (end.y + 1)) fontsize = (canvasheight - 1) - (end.y + 1) - 1;
-            AddText(start.x - (xintervall / 2), start.x + (xintervall / 2), end.y + 1, canvasheight - 1, text.ToString(), fontsize);
+            AddText(start.x, start.x + 10, end.y + 1, canvasheight - 1, text.ToString(), fontsize);
             while(start.x <= _chartarea.right)
             {
                 start.x += xintervall;
                 end.x += xintervall;
                 text += numintervall;
                 AddLine(start, end, Color.Gray, 0.5);
-                AddText(start.x - (xintervall / 2), start.x + (xintervall / 2), end.y + 1, canvasheight - 1, text.ToString(), fontsize);
+                AddText(start.x, start.x + 10, end.y + 1, canvasheight - 1, text.ToString(), fontsize);
             }
             AddText(_chartarea.right + 1, canvaswidth - 1, _chartarea.bottom - fontsize / 2, _chartarea.bottom + fontsize / 2, pag.xaxisname, fontsize);
-            
+
+            Debug.WriteLine("<<< add x axis");
+            Debug.WriteLine(yintervall);
             //Add X Axis
             start = new Point() { x = _chartarea.left, y = _chartarea.bottom };
             end = new Point() { x = _chartarea.right, y = _chartarea.bottom };
@@ -393,24 +418,35 @@ namespace PolyAxisGraphs_Backend
             if (d == 0) d = 20;
             d = d / canvaswidth;
 
-            CalculateRectangle(_legendarea, 0.01, d, 0.01, 0.2);
-            CalculateRectangle(_titlearea, d + 0.01, 0.9, 0.01, 0.2);
-            CalculateRectangle(_datearea, 0.91, 0.99, 0.01, 0.2);
-            CalculateRectangle(_yaxisarea, 0.01, d, 0.21, 0.95);
-            CalculateRectangle(_chartarea, d + 0.01, 0.90, 0.21, 0.95);
-            CalculateRectangle(_functionarea, 0.91, 0.99, 0.21, 0.95);
+            CalculateRectangle(Area.Legend, 0.01, d, 0.01, 0.1);
+            CalculateRectangle(Area.Title, d + 0.01, 0.9, 0.01, 0.1);
+            CalculateRectangle(Area.Date, 0.91, 0.99, 0.01, 0.1);
+            CalculateRectangle(Area.YAxis, 0.01, d, 0.11, 0.95);
+            CalculateRectangle(Area.Chart, d + 0.01, 0.90, 0.11, 0.95);
+            CalculateRectangle(Area.Function, 0.91, 0.99, 0.11, 0.95);
 
             return null;
         }
 
-        private void CalculateRectangle(Rectangle rect, double x1, double x2, double y1, double y2)
+        enum Area { Legend, Title, Date, YAxis, Chart, Function}
+        private void CalculateRectangle(Area area, double x1, double x2, double y1, double y2)
         {
+            Rectangle rect = new Rectangle();
             rect.left = canvaswidth * x1;
             rect.top = canvasheight * y1;
             rect.right = canvaswidth * x2;
             rect.bottom = canvasheight * y2;
-            rect.width = rect.right - rect.left;
-            rect.height = rect.bottom - rect.top;
+            rect.width = canvaswidth * x2 - canvaswidth * x1;
+            rect.height = canvasheight * y2 - canvasheight * y1;
+            switch (area)
+            {
+                case Area.Legend: _legendarea = rect; break;
+                case Area.Title: _titlearea = rect; break;
+                case Area.Date: _datearea = rect; break;
+                case Area.YAxis: _yaxisarea = rect; break;
+                case Area.Chart: _chartarea = rect; break;
+                case Area.Function: _functionarea = rect; break;
+            }
         }
 
         private void AddLine(Point _start, Point _end, Color _color, double _thickness)
