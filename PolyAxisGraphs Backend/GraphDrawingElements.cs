@@ -333,23 +333,23 @@ namespace PolyAxisGraphs_Backend
         {
             double xintervall = _chartarea.width / (double)gridintervallcount;
             double yintervall = _chartarea.height / (double)gridintervallcount;
-            int numintervall = (x2 - x1) / gridintervallcount;
+            double numintervall = (double)(x2 - x1) / (double)gridintervallcount;
             if(xintervall < 1 ||  yintervall < fontsize) String.Format("gridintervall too large to display graph. choose smaller chartgridintervall.\nAddChart(): yintervall {0}, fontsize {1}, xintervall {2}", yintervall, fontsize, xintervall);
             
             //Add Y Axis
             Point start = new Point() { x = _chartarea.left, y = _chartarea.top };
             Point end = new Point() { x = _chartarea.left, y = _chartarea.bottom };
-            int text = x1;
+            double text = x1;
             AddLine(start, end, Color.Black, 1);
             if (fontsize > (canvasheight - 1) - (end.y + 1)) fontsize = (canvasheight - 1) - (end.y + 1) - 1;
-            AddText(start.x - xintervall / 2, start.x + xintervall / 2, end.y + 1, canvasheight - 1, text.ToString(), fontsize);
+            AddText(start.x, start.x + xintervall / 2, end.y + 1, canvasheight - 1, text.ToString(), fontsize);
             while(start.x <= _chartarea.right)
             {
                 start.x += xintervall;
                 end.x += xintervall;
                 text += numintervall;
                 AddLine(start, end, Color.Gray, 0.5);
-                AddText(start.x - xintervall/2, start.x + xintervall/2, end.y + 1, canvasheight - 1, text.ToString(), fontsize);
+                AddText(start.x, start.x + xintervall/2, end.y + 1, canvasheight - 1, text.ToString(), fontsize);
             }
             AddText(_chartarea.right + 1, canvaswidth - 1, _chartarea.bottom - fontsize / 2, _chartarea.bottom + fontsize / 2, pag.xaxisname, fontsize);
 
