@@ -342,14 +342,14 @@ namespace PolyAxisGraphs_Backend
             int text = x1;
             AddLine(start, end, Color.Black, 1);
             if (fontsize > (canvasheight - 1) - (end.y + 1)) fontsize = (canvasheight - 1) - (end.y + 1) - 1;
-            AddText(start.x, start.x + 10, end.y + 1, canvasheight - 1, text.ToString(), fontsize);
+            AddText(start.x - xintervall / 2, start.x + xintervall / 2, end.y + 1, canvasheight - 1, text.ToString(), fontsize);
             while(start.x <= _chartarea.right)
             {
                 start.x += xintervall;
                 end.x += xintervall;
                 text += numintervall;
                 AddLine(start, end, Color.Gray, 0.5);
-                AddText(start.x, start.x + 10, end.y + 1, canvasheight - 1, text.ToString(), fontsize);
+                AddText(start.x - xintervall/2, start.x + xintervall/2, end.y + 1, canvasheight - 1, text.ToString(), fontsize);
             }
             AddText(_chartarea.right + 1, canvaswidth - 1, _chartarea.bottom - fontsize / 2, _chartarea.bottom + fontsize / 2, pag.xaxisname, fontsize);
 
