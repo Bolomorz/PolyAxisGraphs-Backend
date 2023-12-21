@@ -59,7 +59,7 @@ namespace PolyAxisGraphs_Backend
             }
         }
 
-        public void WriteSettings(string _initialdirectory, string _languagefile,string _yaxiswidth, string _controlfontsize, string _chartfontsize, string _charttitlefontsize, string _fontfamily, string _chartgridinterval) 
+        public void WriteSettings(string _initialdirectory, string _languagefile, string _yaxiswidth, string _controlfontsize, string _chartfontsize, string _charttitlefontsize, string _fontfamily, string _chartgridinterval) 
         {
             if (File.Exists(file))
             {

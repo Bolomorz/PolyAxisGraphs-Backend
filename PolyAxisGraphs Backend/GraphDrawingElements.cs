@@ -403,14 +403,14 @@ namespace PolyAxisGraphs_Backend
              * d = calc dynamically according to seriescount and yaxiswidth
              * 
              * legendarea   titlearea   datearea
-             * yaxisarea    chartarea   chartarea
+             * yaxisarea    chartarea   functionarea
              * 
-             * legendarea   (x: 1% - d      | y: 1% - 20%)
-             * titlearea    (x: d - 90%     | y: 1% - 20%)
-             * datearea     (x: 91% - 99%   | y: 1% - 20%)
-             * yaxisarea    (x: 1% - d      | y: 21% - 95%)
-             * chartarea    (x: d - 90%     | y: 21% - 95%)
-             * functionarea (x: 91% - 99 %  | y: 21% - 95%)
+             * legendarea   (x: 1% - d      | y: 1% - 10%)
+             * titlearea    (x: d - 90%     | y: 1% - 10%)
+             * datearea     (x: 91% - 99%   | y: 1% - 10%)
+             * yaxisarea    (x: 1% - d      | y: 11% - 95%)
+             * chartarea    (x: d - 90%     | y: 11% - 95%)
+             * functionarea (x: 91% - 99 %  | y: 11% - 95%)
              */
 
             double d = (settings.yaxiswidth is null) ? seriescount * 20 : seriescount * (double)settings.yaxiswidth;
