@@ -331,14 +331,29 @@ namespace PolyAxisGraphs_Backend
         /// </summary>
         public static FileGeneratorAxis VOL = new FileGeneratorAxis(10, 15, "Volt");
         /// <summary>
-        /// predefined axis with name volt, min = 10, max = 15.
+        /// predefined axis with name ampere, min = 0, max = 10.
         /// </summary>
         public static FileGeneratorAxis AMP = new FileGeneratorAxis(0, 10, "Ampere");
+        /// <summary>
+        /// predefined axis with name efficiency, min = 0, max = 1.
+        /// </summary>
         public static FileGeneratorAxis EFF = new FileGeneratorAxis(0, 1, "Efficiency");
+        /// <summary>
+        /// predefined axis with name rotations per minute, min = 1000, max = 10000.
+        /// </summary>
         public static FileGeneratorAxis RPM = new FileGeneratorAxis(1000, 10000, "RotationsPerMinute");
+        /// <summary>
+        /// predefined axis with name newton meter, min = 0, max = 10.
+        /// </summary>
         public static FileGeneratorAxis NM = new FileGeneratorAxis(0, 10, "NewtonMeter");
+        /// <summary>
+        /// predefined axis with name power, min = 0, max = 150.
+        /// </summary>
         public static FileGeneratorAxis POW = new FileGeneratorAxis(0, 150, "Power");
 
+        /// <summary>
+        /// create axis without names and without min/max values.
+        /// </summary>
         public FileGeneratorAxis()
         {
             values = new List<double>();
@@ -349,6 +364,12 @@ namespace PolyAxisGraphs_Backend
             direction = true;
         }
 
+        /// <summary>
+        /// create axis with name and min/max values.
+        /// </summary>
+        /// <param name="_min">min value.</param>
+        /// <param name="_max">max value.</param>
+        /// <param name="_name">name of axis</param>
         public FileGeneratorAxis(int _min, int _max, string _name)
         {
             values = new List<double>();

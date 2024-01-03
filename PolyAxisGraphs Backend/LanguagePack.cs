@@ -7,18 +7,59 @@ using System.Threading.Tasks;
 
 namespace PolyAxisGraphs_Backend
 {
+    /// <summary>
+    /// language pack for controls on views/windows.
+    /// </summary>
     public class LanguagePack
     {
+        /// <summary>
+        /// error in specified line while reading .lng file.
+        /// </summary>
+        public class LanguagePackFileReadError : Exception 
+        {
+            /// <summary>
+            /// display line where error is thrown.
+            /// </summary>
+            /// <param name="line">faulty line.</param>
+            public LanguagePackFileReadError(string line) : base(string.Format("error in line {0}. no or too many separator(=) or comment with no (#)", line)) { }
+        }
+        
+        /// <summary>
+        /// language pack tuple of name and value.
+        /// </summary>
         public struct LPPair
         {
+            /// <summary>
+            /// name of variable.
+            /// </summary>
             public string name { get; set; }
+            /// <summary>
+            /// value of variable.
+            /// </summary>
             public string? value { get; set; }
         }
+        /// <summary>
+        /// path to currently opened language file.
+        /// </summary>
         public string file { get; set; }
+        /// <summary>
+        /// data of currently opened language file.
+        /// </summary>
         public List<LPPair> strings { get; set; }
+        /// <summary>
+        /// boolean wether opened language is default english language.
+        /// </summary>
         public bool IsEN { get; set; }
+        /// <summary>
+        /// default english language.
+        /// </summary>
         public static LanguagePack EN = new LanguagePack(@"LanguageFile\EN.lng");
 
+        /// <summary>
+        /// open and read language file.
+        /// </summary>
+        /// <param name="_file">path to opened file.</param>
+        /// <exception cref="LanguagePackFileReadError">thrown if error found in file.</exception>
         public LanguagePack(string _file)
         {
             file = _file;
@@ -28,6 +69,11 @@ namespace PolyAxisGraphs_Backend
             if (!IsEN) Update();
         }
 
+        /// <summary>
+        /// find value of variable with specified name.
+        /// </summary>
+        /// <param name="name">specified name of variable.</param>
+        /// <returns>value of variable if found. returns null if not found.</returns>
         public string? FindElement(string name)
         {
             foreach(var pair in strings)
@@ -40,6 +86,10 @@ namespace PolyAxisGraphs_Backend
             return null;
         }
 
+        /// <summary>
+        /// read opened file from filepath.
+        /// </summary>
+        /// <exception cref="LanguagePackFileReadError">thrown if error found in file.</exception>
         private void ReadFile()
         {
             if (File.Exists(file))
@@ -53,7 +103,7 @@ namespace PolyAxisGraphs_Backend
                             string[] pair = line.Split('=');
                             if(pair.Length != 2)
                             {
-                                throw new Exception("error in line " + line + ". no or too many separator(=) or comment with no (#)");
+                                throw new LanguagePackFileReadError(line);
                             }
                             else
                             {
@@ -65,6 +115,9 @@ namespace PolyAxisGraphs_Backend
             }
         }
 
+        /// <summary>
+        /// update currently opened language file if necessary.
+        /// </summary>
         private void Update()
         {
             List<string> str = new List<string>();

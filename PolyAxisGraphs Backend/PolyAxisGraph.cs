@@ -11,22 +11,59 @@ using System.Diagnostics;
 
 namespace PolyAxisGraphs_Backend
 {
+    /// <summary>
+    /// stored data of series of chart.
+    /// </summary>
     public class PolyAxisGraph
     {
+        /// <summary>
+        /// list of series.
+        /// </summary>
         public List<Series> series { get; set; }
+        /// <summary>
+        /// name of x axis.
+        /// </summary>
         public string xaxisname { get; set; }
+        /// <summary>
+        /// title of chart.
+        /// </summary>
         public string charttitle { get; set; }
 
+        /// <summary>
+        /// currently opened settings.
+        /// </summary>
         public Settings settings { get; set; }
 
+        /// <summary>
+        /// currently opened data file.
+        /// </summary>
         public string filepath { get; set; }
 
+        /// <summary>
+        /// last added x value.
+        /// </summary>
         public double lastx { get; set; }
+        /// <summary>
+        /// minimum of x values.
+        /// </summary>
         public int x1 { get; set; }
+        /// <summary>
+        /// maximum of x values.
+        /// </summary>
         public int x2 { get; set; }
+        /// <summary>
+        /// default minimum of x values.
+        /// </summary>
         public int defx1 { get; set; }
+        /// <summary>
+        /// default maximum of x values.
+        /// </summary>
         public int defx2 { get; set; }
 
+        /// <summary>
+        /// create pag with settings
+        /// </summary>
+        /// <param name="_settings">currently opened settings file.</param>
         public PolyAxisGraph(Settings _settings) 
         {
             series = new List<Series>();
@@ -41,6 +78,11 @@ namespace PolyAxisGraphs_Backend
             charttitle = "";
         }
 
+        /// <summary>
+        /// read string value to integer number.
+        /// </summary>
+        /// <param name="val">string value.</param>
+        /// <returns>integer number.</returns>
         public static int ReadStringToInt(string val)
         {
             string newval = "";
@@ -53,6 +95,11 @@ namespace PolyAxisGraphs_Backend
             if (newval != "") return Convert.ToInt32(newval); else return 0;
         }
 
+        /// <summary>
+        /// read string value to double number.
+        /// </summary>
+        /// <param name="val">string value.</param>
+        /// <returns>double number.</returns>
         public static double ReadStringToDouble(string val)
         {
             string newval = "";
@@ -79,6 +126,11 @@ namespace PolyAxisGraphs_Backend
             }
         }
 
+        /// <summary>
+        /// test if character is numeric.
+        /// </summary>
+        /// <param name="val">character value.</param>
+        /// <returns>true if numeric, false otherwise.</returns>
         public static bool IsNumeric(char val)
         {
             if (val == '0' || val == '1' || val == '2' || val == '3' || val == '4' || val == '5' || val == '6' || val == '7' || val == '8' || val == '9')
@@ -91,6 +143,12 @@ namespace PolyAxisGraphs_Backend
             }
         }
 
+        /// <summary>
+        /// calculate regression function of specified series as specified type.
+        /// </summary>
+        /// <param name="series">specified series.</param>
+        /// <param name="type">function type.</param>
+        /// <param name="order">order of polynomial function.</param>
         public void CalculateRegression(Series series, Regression.FunctionType type, int order)
         {
             Regression regression = new Regression(series.XValues, series.YValues, settings);
@@ -125,6 +183,13 @@ namespace PolyAxisGraphs_Backend
 
         }
 
+        /// <summary>
+        /// calculate corresponding y value to x value with function and type.
+        /// </summary>
+        /// <param name="xvalue">x value.</param>
+        /// <param name="function">regression function.</param>
+        /// <param name="type">function type.</param>
+        /// <returns>corresponding y value.</returns>
         public double CalculateValue(double xvalue, double[] function, Regression.FunctionType type)
         {
             switch (type)
@@ -151,16 +216,36 @@ namespace PolyAxisGraphs_Backend
             }
         }
 
+        /// <summary>
+        /// set title of chart.
+        /// </summary>
+        /// <param name="title">title of chart.</param>
         public void SetChartTitle(string title)
         {
             charttitle = title;
         }
 
-        public void SetLanguage(string file)
+        /// <summary>
+        /// set current language.
+        /// </summary>
+        /// <param name="file">language file .lng.</param>
+        /// <returns>error if thrown, null otherwise.</returns>
+        public string? SetLanguage(string file)
         {
-            settings.currentlang = new LanguagePack(file);
+            try
+            {
+                settings.currentlang = new LanguagePack(file);
+                return null;
+            }
+            catch (Exception ex) 
+            {
+                return ex.ToString();
+            }
         }
 
+        /// <summary>
+        /// read data from currently opened data file.
+        /// </summary>
         public void ReadData()
         {
             bool exists = File.Exists(filepath);
@@ -231,11 +316,20 @@ namespace PolyAxisGraphs_Backend
             }
         }
 
+        /// <summary>
+        /// set currently opened data file.
+        /// </summary>
+        /// <param name="file">path to file.</param>
         public void SetFilePath(string file)
         {
             filepath = file;
         }
 
+        /// <summary>
+        /// read first line in .txt or .csv file. contains names of x axis and y axes.
+        /// </summary>
+        /// <param name="line">line to read.</param>
+        /// <param name="separator">separator (' ', ';')</param>
         private void ReadFirstLine(string line, char separator)
         {
             char[] separators = { separator };
@@ -264,6 +358,11 @@ namespace PolyAxisGraphs_Backend
             }
         }
 
+        /// <summary>
+        /// read line in .txt or .csv file. contains data of x values and series values.
+        /// </summary>
+        /// <param name="line">line to read.</param>
+        /// <param name="separator">separator (' ', ';')</param>
         private void ReadLine(string line, char separator)
         {
             char[] separators = { separator };
@@ -279,6 +378,9 @@ namespace PolyAxisGraphs_Backend
             }
         }
 
+        /// <summary>
+        /// read .xlsx file. contains names and data of x axis and y axes.
+        /// </summary>
         private void ReadXlsx()
         {
             ExcelReaderWriter reader = new ExcelReaderWriter(filepath, settings);
