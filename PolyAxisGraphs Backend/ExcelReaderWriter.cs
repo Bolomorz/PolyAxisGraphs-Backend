@@ -9,11 +9,23 @@ using XCL = Microsoft.Office.Interop.Excel;
 
 namespace PolyAxisGraphs_Backend
 {
+    /// <summary>
+    /// reading and writing of excel file (.xlsx).
+    /// </summary>
     public class ExcelReaderWriter
     {
+        /// <summary>
+        /// cell in excel file.
+        /// </summary>
         public struct Cell
         {
+            /// <summary>
+            /// value of cell.
+            /// </summary>
             public string? value { get; set; }
+            /// <summary>
+            /// color of cell.
+            /// </summary>
             public Color? color { get; set; }
         }
         XCL.Application? application { get; set; }
@@ -26,6 +38,11 @@ namespace PolyAxisGraphs_Backend
 
         Settings settings { get; set; }
 
+        /// <summary>
+        /// create ERW with filepath and settings.
+        /// </summary>
+        /// <param name="_file">filepath to excel file.</param>
+        /// <param name="_settings">settings of pag.</param>
         public ExcelReaderWriter(string _file, Settings _settings)
         {
             file = _file;
@@ -33,6 +50,11 @@ namespace PolyAxisGraphs_Backend
             opened = false;
         }
 
+        /// <summary>
+        /// find next unused file name in settings.initialdirectory.
+        /// </summary>
+        /// <param name="set">settings of pag.</param>
+        /// <returns>next unused file name in settings.initialdirectory. returns null if settings.initaldirectory is null.</returns>
         public static string? FindNextFileName(Settings set)
         {
             int i = 0;
@@ -52,6 +74,12 @@ namespace PolyAxisGraphs_Backend
             return null;
         }
 
+        /// <summary>
+        /// read cell of specified row and column.
+        /// </summary>
+        /// <param name="row">row in file. starts with 1.</param>
+        /// <param name="col">column in file. starts with 1.</param>
+        /// <returns>cell in file.</returns>
         public Cell ReadCell(int row, int col)
         {
             string? value = null;
@@ -74,6 +102,12 @@ namespace PolyAxisGraphs_Backend
             return new Cell() { value = value, color = color };
         }
 
+        /// <summary>
+        /// write cell of specified row and column with input value.
+        /// </summary>
+        /// <param name="row">row in file. starts with 1.</param>
+        /// <param name="col">column in file. starts with 1.</param>
+        /// <param name="value">input value.</param>
         public void WriteCell(int row , int col, object value) 
         {
             if(opened && worksheet is not null)
@@ -90,6 +124,12 @@ namespace PolyAxisGraphs_Backend
             }
         }
 
+        /// <summary>
+        /// set color of cell of specified row and column with input color.
+        /// </summary>
+        /// <param name="row">row in file. starts with 1.</param>
+        /// <param name="col">column in file. starts with 1.</param>
+        /// <param name="color">input color.</param>
         public void SetColor(int row, int col, Color color)
         {
             if(opened && worksheet is not null)
@@ -107,6 +147,9 @@ namespace PolyAxisGraphs_Backend
             }
         }
 
+        /// <summary>
+        /// start excel process and open file.
+        /// </summary>
         public void EstablishConnection()
         {
             if (File.Exists(file))
@@ -141,12 +184,18 @@ namespace PolyAxisGraphs_Backend
             }
         }
 
+        /// <summary>
+        /// save changes, close file and quit excel process.
+        /// </summary>
         public void Disconnect()
         {
             SaveChanges();
             Quit();
         }
 
+        /// <summary>
+        /// save changes to file.
+        /// </summary>
         private void SaveChanges()
         {
             try
@@ -169,6 +218,9 @@ namespace PolyAxisGraphs_Backend
             }
         }
 
+        /// <summary>
+        /// close file and quit excel process
+        /// </summary>
         private void Quit()
         {
             try

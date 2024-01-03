@@ -7,15 +7,32 @@ using System.Threading.Tasks;
 
 namespace PolyAxisGraphs_Backend
 {
+    /// <summary>
+    /// generate data file with random generated values.
+    /// </summary>
     public class FileGenerator
     {
+        /// <summary>
+        /// filetype of data file.
+        /// </summary>
         public enum FileType { txt, csv, xlsx }
         Random rd;
+        /// <summary>
+        /// x-axis data.
+        /// </summary>
         public FileGeneratorAxis XAxis { get; set; }
+        /// <summary>
+        /// list of y-axis data.
+        /// </summary>
         public List<FileGeneratorAxis> YAxes { get; set; }
         string file { get; set; }
         Settings settings { get; set; }
 
+        /// <summary>
+        /// create file generator with specified y-axis-count.
+        /// </summary>
+        /// <param name="YAxisCount">y-axis-count.</param>
+        /// <param name="_settings">settings of pag.</param>
         public FileGenerator(int YAxisCount, Settings _settings)
         {
             rd = new Random();
@@ -29,6 +46,10 @@ namespace PolyAxisGraphs_Backend
             settings = _settings;
         }
 
+        /// <summary>
+        /// create file generator with predefined axis data.
+        /// </summary>
+        /// <param name="_settings">settings of pag.</param>
         public FileGenerator(Settings _settings)
         {
             rd = new Random();
@@ -45,6 +66,11 @@ namespace PolyAxisGraphs_Backend
             settings = _settings;
         }
 
+        /// <summary>
+        /// generate data and file of specified file type.
+        /// </summary>
+        /// <param name="type">file type of data file.</param>
+        /// <returns>path to file. returns null if no file generated.</returns>
         public string? GenerateFile(FileType type)
         {
             double startx = (double)(rd.Next(0, 100)) / 1000.0;
@@ -111,6 +137,11 @@ namespace PolyAxisGraphs_Backend
             return file;
         }
 
+        /// <summary>
+        /// add value to specified axis.
+        /// </summary>
+        /// <param name="axis">specified axis.</param>
+        /// <param name="value">added value.</param>
         private void AddValue(FileGeneratorAxis axis, double value)
         {
             double next;
@@ -137,6 +168,11 @@ namespace PolyAxisGraphs_Backend
             axis.last = next;
         }
 
+        /// <summary>
+        /// find unused filename of type in settings.initialdirectory.
+        /// </summary>
+        /// <param name="type">file type of file.</param>
+        /// <returns>path to file. returns null if settings.initialdirectory is null.</returns>
         private string? FindFileName(FileType type)
         {
             int i = 0;
@@ -157,6 +193,9 @@ namespace PolyAxisGraphs_Backend
             return null;
         }
 
+        /// <summary>
+        /// save file as .txt.
+        /// </summary>
         private void SaveFileTxt()
         {
             string firstline = "";
@@ -181,6 +220,9 @@ namespace PolyAxisGraphs_Backend
             }
         }
 
+        /// <summary>
+        /// save file as .csv.
+        /// </summary>
         private void SaveFileCsv()
         {
             string firstline = "";
@@ -205,6 +247,9 @@ namespace PolyAxisGraphs_Backend
             }
         }
 
+        /// <summary>
+        /// save file as .xlsx.
+        /// </summary>
         private void SaveFileXlsx()
         {
             ExcelReaderWriter erw = new ExcelReaderWriter(file, settings);
@@ -251,16 +296,43 @@ namespace PolyAxisGraphs_Backend
         }
     }
 
+    /// <summary>
+    /// axis with data for file generator.
+    /// </summary>
     public class FileGeneratorAxis
     {
+        /// <summary>
+        /// data of axis.
+        /// </summary>
         public List<double> values { get; set; }
+        /// <summary>
+        /// min value.
+        /// </summary>
         public int min { get; set; }
+        /// <summary>
+        /// max value.
+        /// </summary>
         public int max { get; set; }
+        /// <summary>
+        /// value of last added data.
+        /// </summary>
         public double last { get; set; }
+        /// <summary>
+        /// name of axis.
+        /// </summary>
         public string name { get; set; }
+        /// <summary>
+        /// direction of next data. true -> add, false -> subtract.
+        /// </summary>
         public bool direction { get; set; }
 
+        /// <summary>
+        /// predefined axis with name volt, min = 10, max = 15.
+        /// </summary>
         public static FileGeneratorAxis VOL = new FileGeneratorAxis(10, 15, "Volt");
+        /// <summary>
+        /// predefined axis with name volt, min = 10, max = 15.
+        /// </summary>
         public static FileGeneratorAxis AMP = new FileGeneratorAxis(0, 10, "Ampere");
         public static FileGeneratorAxis EFF = new FileGeneratorAxis(0, 1, "Efficiency");
         public static FileGeneratorAxis RPM = new FileGeneratorAxis(1000, 10000, "RotationsPerMinute");

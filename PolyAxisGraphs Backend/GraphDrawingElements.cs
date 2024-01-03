@@ -107,7 +107,7 @@ namespace PolyAxisGraphs_Backend
             {
                 if (_series.series.active)
                 {
-                    for (int i = 0; i < _series.seriespoint.Count; i++)
+                    for (int i = 0; i < _series.seriespoint.Count && i < _series.chartpoint.Count; i++)
                     {
                         var seriespoint = _series.seriespoint[i];
                         var chartpoint = _series.chartpoint[i];
@@ -351,7 +351,7 @@ namespace PolyAxisGraphs_Backend
                 AddLine(start, end, Color.Gray, 0.5);
                 AddText(start.x, start.x + xintervall/2, end.y + 1, canvasheight - 1, text.ToString(), fontsize);
             }
-            AddText(_chartarea.right + 1, canvaswidth - 1, _chartarea.bottom - fontsize / 2, _chartarea.bottom + fontsize / 2, pag.xaxisname, fontsize);
+            AddText(_chartarea.right + xintervall/2, canvaswidth - 1, _chartarea.bottom - fontsize / 2, _chartarea.bottom + fontsize / 2, pag.xaxisname, fontsize);
 
             Debug.WriteLine("<<< add x axis");
             Debug.WriteLine(yintervall);
@@ -359,7 +359,7 @@ namespace PolyAxisGraphs_Backend
             start = new Point() { x = _chartarea.left, y = _chartarea.bottom };
             end = new Point() { x = _chartarea.right, y = _chartarea.bottom };
             AddLine(start, end, Color.Black, 1);
-            while(start.y >= _chartarea.top)
+            while(start.y > _chartarea.top)
             {
                 start.y -= yintervall;
                 end.y -= yintervall;
@@ -400,7 +400,7 @@ namespace PolyAxisGraphs_Backend
         {
             /*
              * x = width, y = height
-             * d = calc dynamically according to seriescount and yaxiswidth
+             * d = calculate according to seriescount and yaxiswidth
              * 
              * legendarea   titlearea   datearea
              * yaxisarea    chartarea   functionarea
@@ -428,7 +428,7 @@ namespace PolyAxisGraphs_Backend
             return null;
         }
 
-        enum Area { Legend, Title, Date, YAxis, Chart, Function}
+        private enum Area { Legend, Title, Date, YAxis, Chart, Function}
         private void CalculateRectangle(Area area, double x1, double x2, double y1, double y2)
         {
             Rectangle rect = new Rectangle();
