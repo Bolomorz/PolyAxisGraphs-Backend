@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Drawing;
 
 namespace PolyAxisGraphs_Backend
 {
@@ -20,6 +21,10 @@ namespace PolyAxisGraphs_Backend
             /// specify wether text is supposed to be written in superscript.
             /// </summary>
             public bool superscript { get; set; } 
+            /// <summary>
+            /// color of series
+            /// </summary>
+            public Color fcolor { get; set; }
         }
         /// <summary>
         /// x values of series.
@@ -231,13 +236,13 @@ namespace PolyAxisGraphs_Backend
                         l2 *= -1;
                     }
                     str = String.Format("y = {0} {2} {1} * x", l1, l2, lo);
-                    functions.Add(new FunctionString() { function = str, superscript = false});
+                    functions.Add(new FunctionString() { function = str, superscript = false, fcolor = color});
                     break;
                 case Regression.FunctionType.Exponential:
                     double e1 = Math.Round(regressionfunction[0], precision);
                     double e2 = Math.Round(regressionfunction[1], precision);
                     str = String.Format("y = {0} * exp({1} * x)", e1, e2);
-                    functions.Add(new FunctionString() { function = str, superscript = false});
+                    functions.Add(new FunctionString() { function = str, superscript = false, fcolor = color });
                     break;
                 case Regression.FunctionType.Logarithm:
                     double log1 = Math.Round(regressionfunction[0], precision);
@@ -249,11 +254,11 @@ namespace PolyAxisGraphs_Backend
                         log2 *= -1;
                     }
                     str = String.Format("y = {0} {2} {1} * ln(x)", log1, log2, logo);
-                    functions.Add(new FunctionString() { function = str, superscript = false});
+                    functions.Add(new FunctionString() { function = str, superscript = false, fcolor = color });
                     break;
                 case Regression.FunctionType.Polynomial:
                     str = String.Format("y = {0}", Math.Round(regressionfunction[0], precision));
-                    functions.Add(new FunctionString() { function = str, superscript = false});
+                    functions.Add(new FunctionString() { function = str, superscript = false, fcolor = color });
                     for(int i = 1; i < regressionfunction.Length; i++)
                     {
                         double p1 = Math.Round(regressionfunction[i], precision);
@@ -264,22 +269,22 @@ namespace PolyAxisGraphs_Backend
                             p1 *= -1;
                         }
                         str = po + p1 + " * x";
-                        functions.Add(new FunctionString() { function = str, superscript = false});
+                        functions.Add(new FunctionString() { function = str, superscript = false, fcolor = color });
                         str = i.ToString();
-                        functions.Add(new FunctionString() { function = str, superscript = true}); 
+                        functions.Add(new FunctionString() { function = str, superscript = true, fcolor = color }); 
                     }
                     break;
                 case Regression.FunctionType.Power:
                     double pow1 = Math.Pow(regressionfunction[0], precision);
                     double pow2 = Math.Pow(regressionfunction[1], precision);
                     str = String.Format("y = {0} * x", pow1);
-                    functions.Add(new FunctionString() { function = str, superscript = false});
+                    functions.Add(new FunctionString() { function = str, superscript = false, fcolor = color });
                     str = pow2.ToString();
-                    functions.Add(new FunctionString() { function = str, superscript = true});
+                    functions.Add(new FunctionString() { function = str, superscript = true, fcolor = color });
                     break;
                 case Regression.FunctionType.NaF:
                     str = string.Empty;
-                    functions.Add(new FunctionString() { function = str, superscript = true}); 
+                    functions.Add(new FunctionString() { function = str, superscript = true, fcolor = color }); 
                     break;
             }
             return functions;

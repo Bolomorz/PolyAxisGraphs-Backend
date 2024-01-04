@@ -377,18 +377,20 @@ namespace PolyAxisGraphs_Backend
                 }
             }
 
-            Debug.WriteLine("<<< draw function");
             //Draw Regressionfunction
             if (series.showfunction && series.rft != Regression.FunctionType.NaF)
             {
+                Debug.WriteLine("<<< draw function");
                 List<Point> functionpoints = new List<Point>();
-                double xintervall = (x2 - x1) / 100;
+                double xintervall = (double)(x2 - x1) / 100.0d;
                 double xval = x1;
+                Debug.WriteLine("<<< startx={0}", xval);
                 while (xval <= x2)
                 {
                     double yval = pag.CalculateValue(xval, series.regressionfunction, series.rft);
                     if (xval >= x1 && xval <= x2 && yval >= series.setmin && yval <= series.setmax) functionpoints.Add(new Point() { x = xval, y = yval });
                     xval += xintervall;
+                    Debug.WriteLine("<<< newx={0}|functionpointscount={1}", xval, functionpoints.Count);
                 }
                 if(functionpoints.Count > 0)
                 {
@@ -478,16 +480,16 @@ namespace PolyAxisGraphs_Backend
             double text = x1;
             AddLine(start, end, Color.Black, 1);
             if (fontsize > (canvasheight - 1) - (end.y + 1)) fontsize = (canvasheight - 1) - (end.y + 1) - 1;
-            AddText(start.x, start.x + xintervall / 2, end.y + 1, canvasheight - 1, text.ToString(), fontsize);
+            AddText(start.x - xintervall / 2, start.x + xintervall / 2, end.y + 1, canvasheight - 1, text.ToString(), fontsize);
             while(start.x <= _chartarea.right)
             {
                 start.x += xintervall;
                 end.x += xintervall;
                 text += numintervall;
                 AddLine(start, end, Color.Gray, 0.5);
-                AddText(start.x, start.x + xintervall/2, end.y + 1, canvasheight - 1, text.ToString(), fontsize);
+                AddText(start.x - xintervall / 2, start.x + xintervall/2, end.y + 1, canvasheight - 1, text.ToString(), fontsize);
             }
-            AddText(_chartarea.left + _chartarea.width / 2, _chartarea.right, _chartarea.bottom + (fontsize + 2), _chartarea.bottom + (2 + fontsize) * 2, pag.xaxisname, fontsize);
+            AddText(_chartarea.left + _chartarea.width / 4, _chartarea.right - _chartarea.width / 4, _chartarea.bottom + (fontsize + 2), _chartarea.bottom + (2 + fontsize) * 2, pag.xaxisname, fontsize);
 
             Debug.WriteLine("<<< add x axis");
             Debug.WriteLine(yintervall);
