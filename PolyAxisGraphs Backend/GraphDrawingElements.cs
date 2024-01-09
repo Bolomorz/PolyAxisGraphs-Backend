@@ -53,6 +53,15 @@ namespace PolyAxisGraphs_Backend
         }
 
         /// <summary>
+        /// range from center point.
+        /// </summary>
+        public struct PointRange
+        {
+            public Point center;
+            public double range;
+        }
+
+        /// <summary>
         /// all seriespoints with corresponding chartpoint of series.
         /// </summary>
         public struct SeriesData
@@ -186,13 +195,14 @@ namespace PolyAxisGraphs_Backend
         /// </summary>
         /// <param name="point">point on canvas.</param>
         /// <returns>corresponding point of series. returns null if no point on any series found or if canvaspoint outside of chartarea.</returns>
-        public SeriesData? TranslateChartPointToSeriesPoint(Point point)
+        public SeriesData? TranslateChartPointToSeriesPoint(PointRange range)
         {
-            if(point.x < _chartarea.left || point.x > _chartarea.right || point.y < _chartarea.top || point.y > _chartarea.bottom) return null;
+            if(range.center.x < _chartarea.left || range.center.x > _chartarea.right || range.center.y < _chartarea.top || range.center.y > _chartarea.bottom) return null;
 
             foreach(var data in _seriesdata)
             {
-                if(point.x == data.chartpoint.x && point.y == data.chartpoint.y)
+                if(data.chartpoint.x >= range.center.x - range.range && data.chartpoint.x <= range.center.x + range.range && 
+                    data.chartpoint.y >= range.center.y - range.range && data.chartpoint.y <= range.center.y + range.range)
                 {
                     return data;
                 }
@@ -312,8 +322,7 @@ namespace PolyAxisGraphs_Backend
             start = new Point() { x = xarea, y = _legendarea.bottom };
             end = new Point() { x = xarea, y = _legendarea.top };
             AddLine(start, end, series.color, 1);
-            double midpoint = (_legendarea.bottom + _legendarea.top) / 2;
-            AddText(xarea, start.x + length * 4, midpoint - fontsize / 2, midpoint + fontsize / 2, series.name, fontsize);
+            AddText(xarea, start.x + length * 4, _legendarea.top, _legendarea.bottom, series.name, fontsize);
 
             Debug.WriteLine("<<< add functionstring");
             //Add Functionstring
@@ -327,7 +336,7 @@ namespace PolyAxisGraphs_Backend
             {
                 double xval = series.XValues[i];
                 double yval = series.YValues[i];
-                if(xval >= x1 && xval <= x2 && yval >= series.setmin && yval <= series.setmax) seriespoints.Add(new Point() { x = xval, y = yval });
+                if(xval >= x1 && xval <= x2) seriespoints.Add(new Point() { x = xval, y = yval });
             }
             if(seriespoints.Count > 0)
             {
@@ -335,7 +344,14 @@ namespace PolyAxisGraphs_Backend
                 int i = 0;
                 while(seriesstart is null && i < seriespoints.Count)
                 {
-                    seriesstart = TranslateSeriesPointToChartPoint(seriespoints[i].x, seriespoints[i].y, x1, x2, series.setmin, series.setmax);
+                    var newpoint = TranslateSeriesPointToChartPoint(seriespoints[i].x, seriespoints[i].y, x1, x2, series.setmin, series.setmax);
+                    if (newpoint is null) seriesstart = null;
+                    else
+                    {
+                        Point np = (Point)newpoint;
+                        if (np.y < _chartarea.top || np.y > _chartarea.bottom) seriesstart = null;
+                        else seriesstart = np;
+                    }
                     i++;
                 }
                 if (seriesstart is not null)
@@ -346,9 +362,20 @@ namespace PolyAxisGraphs_Backend
                         var seriesend = TranslateSeriesPointToChartPoint(seriespoints[i].x, seriespoints[i].y, x1, x2, series.setmin, series.setmax);
                         if (seriesend is not null)
                         {
-                            AddLine((Point)seriesstart, (Point)seriesend, series.color, 1);
-                            seriesstart = seriesend;
-                            _seriesdata.Add(new SeriesData() { series = series, seriespoint = seriespoints[i], chartpoint = (Point)seriesstart });
+                            Point s = (Point)seriesstart;
+                            Point e = (Point)seriesend;
+                            var edgepoints = CalculateEdgePoints(s, e);
+                            if(edgepoints is not null)
+                            {
+                                Tuple<Point, Point> ep = (Tuple<Point, Point>)edgepoints;
+                                AddLine(ep.Item1, ep.Item2, series.color, 1);
+                                seriesstart = seriesend;
+                                _seriesdata.Add(new SeriesData() { series = series, seriespoint = seriespoints[i], chartpoint = (Point)seriesstart });
+                            }
+                            else
+                            {
+                                seriesstart = seriesend;
+                            }
                         }
                         i++;
                     }
@@ -358,17 +385,14 @@ namespace PolyAxisGraphs_Backend
             //Draw Regressionfunction
             if (series.showfunction && series.rft != Regression.FunctionType.NaF)
             {
-                Debug.WriteLine("<<< draw function");
                 List<Point> functionpoints = new List<Point>();
                 double xintervall = (double)(x2 - x1) / 100.0d;
                 double xval = x1;
-                Debug.WriteLine("<<< startx={0}", xval);
                 while (xval <= x2)
                 {
                     double yval = pag.CalculateValue(xval, series.regressionfunction, series.rft);
-                    if (xval >= x1 && xval <= x2 && yval >= series.setmin && yval <= series.setmax) functionpoints.Add(new Point() { x = xval, y = yval });
+                    if (xval >= x1 && xval <= x2) functionpoints.Add(new Point() { x = xval, y = yval });
                     xval += xintervall;
-                    Debug.WriteLine("<<< newx={0}|functionpointscount={1}", xval, functionpoints.Count);
                 }
                 if(functionpoints.Count > 0)
                 {
@@ -376,7 +400,14 @@ namespace PolyAxisGraphs_Backend
                     int i = 0;
                     while (functionstart is null && i < functionpoints.Count)
                     {
-                        functionstart = TranslateSeriesPointToChartPoint(functionpoints[i].x, functionpoints[i].y, x1, x2, series.setmin, series.setmax);
+                        var newpoint = TranslateSeriesPointToChartPoint(functionpoints[i].x, functionpoints[i].y, x1, x2, series.setmin, series.setmax);
+                        if (newpoint is null) functionstart = null;
+                        else
+                        {
+                            Point np = (Point)newpoint;
+                            if (np.y < _chartarea.top || np.y > _chartarea.bottom) functionstart = null;
+                            else functionstart = np;
+                        }
                         i++;
                     }
                     if (functionstart is not null)
@@ -388,15 +419,37 @@ namespace PolyAxisGraphs_Backend
                             var functionend = TranslateSeriesPointToChartPoint(functionpoints[i].x, functionpoints[i].y, x1, x2, series.setmin, series.setmax);
                             if (functionend is not null && draw)
                             {
-                                AddLine((Point)functionstart, (Point)functionend, series.color, 0.5);
-                                functionstart = functionend;
-                                draw = false;
-                                _seriesdata.Add(new SeriesData() { series = series, seriespoint = functionpoints[i], chartpoint = (Point)functionstart });
+                                Point s = (Point)functionstart;
+                                Point e = (Point)functionend;
+                                var edgepoints = CalculateEdgePoints(s, e);
+                                if (edgepoints is not null)
+                                {
+                                    Tuple<Point, Point> ep = (Tuple<Point, Point>)edgepoints;
+                                    AddLine(ep.Item1, ep.Item2, series.color, 1);
+                                    functionstart = functionend;
+                                    _seriesdata.Add(new SeriesData() { series = series, seriespoint = functionpoints[i], chartpoint = (Point)functionstart });
+                                }
+                                else
+                                {
+                                    functionstart = functionend;
+                                }
                             }
                             else if (functionend is not null && !draw)
                             {
                                 draw = true;
-                                _seriesdata.Add(new SeriesData() { series = series, seriespoint = functionpoints[i - 1], chartpoint = (Point)functionstart });
+                                Point s = (Point)functionstart;
+                                Point e = (Point)functionend;
+                                var edgepoints = CalculateEdgePoints(s, e);
+                                if (edgepoints is not null)
+                                {
+                                    Tuple<Point, Point> ep = (Tuple<Point, Point>)edgepoints;
+                                    functionstart = functionend;
+                                    _seriesdata.Add(new SeriesData() { series = series, seriespoint = functionpoints[i], chartpoint = (Point)functionstart });
+                                }
+                                else
+                                {
+                                    functionstart = functionend;
+                                }
                             }
                             i++;
                         }
@@ -405,6 +458,71 @@ namespace PolyAxisGraphs_Backend
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// calculate edge point on chartarea edge on line between start and end.
+        /// </summary>
+        /// <param name="start">point in or outside of chartarea.</param>
+        /// <param name="end">point in or outside of chartarea.</param>
+        /// <returns>corresponding edge point on line between start and end. returns null if start and end inside chartarea, or if start and end outside chartarea.</returns>
+        private Tuple<Point, Point>? CalculateEdgePoints(Point start, Point end)
+        {
+            //start and end inside chartarea
+            if (start.y >= _chartarea.top && start.y <= _chartarea.bottom && end.y >= _chartarea.top && end.y <= _chartarea.bottom) return new Tuple<Point, Point>(start, end);
+
+            //start outside chartarea, end inside chartarea
+            else if((start.y < _chartarea.top || start.y > _chartarea.bottom) && end.y >= _chartarea.top && end.y <= _chartarea.bottom)
+            {
+                    double m = (end.y - start.y) / (end.x - start.x);
+                    double c = end.y - m * end.x;
+                    double y = (start.y < _chartarea.top) ? _chartarea.top : _chartarea.bottom;
+                    double x = (y - c) / m;
+                    return new Tuple<Point, Point>(new Point() { y = y, x = x }, end);
+            }
+
+            //end outside chartarea, start inside chartarea
+            else if((end.y < _chartarea.top || end.y > _chartarea.bottom) && start.y >= _chartarea.top && start.y <= _chartarea.bottom)
+            {
+                    double m = (end.y - start.y) / (end.x - start.x);
+                    double c = end.y - m * end.x;
+                    double y = (end.y < _chartarea.top) ? _chartarea.top : _chartarea.bottom;
+                    double x = (y - c) / m;
+                    return new Tuple<Point, Point>(start, new Point() { y = y, x = x });
+            }
+
+            //start and end outside chartarea
+            else
+            {
+                if(start.y < _chartarea.top && end.y > _chartarea.bottom)
+                {
+                    double m = (end.y - start.y) / (end.x - start.x);
+                    double c = end.y - m * end.x;
+                    double y = _chartarea.top;
+                    double x = (y - c) / m;
+                    Point pstart = new Point() { x = x, y = y };
+                    y = _chartarea.bottom;
+                    x = (y - c) / m;
+                    Point pend = new Point() { x = x, y = y };
+                    return new Tuple<Point, Point>(pstart, pend);
+                }
+                else if(start.y > _chartarea.bottom && end.y < _chartarea.top)
+                {
+                    double m = (end.y - start.y) / (end.x - start.x);
+                    double c = end.y - m * end.x;
+                    double y = _chartarea.bottom;
+                    double x = (y - c) / m;
+                    Point pstart = new Point() { x = x, y = y };
+                    y = _chartarea.top;
+                    x = (y - c) / m;
+                    Point pend = new Point() { x = x, y = y };
+                    return new Tuple<Point, Point>(pstart, pend);
+                }
+                else
+                {
+                    return null;
+                }
+            }
         }
 
         /// <summary>
@@ -419,15 +537,39 @@ namespace PolyAxisGraphs_Backend
         /// <returns>corresponding point on canvas. returns null if outside of chartarea.</returns>
         private Point? TranslateSeriesPointToChartPoint(double x, double y, double x1, double x2, double y1, double y2)
         {
-            if(x < x1 || x > x2 || y < y1  || y > y2) return null;
+            if(x < x1 || x > x2) return null;
 
-            double xpercent = (x - x1) / (x2 - x1);
-            double chartoffsetx = (_chartarea.right - _chartarea.left) * xpercent;
-            double chartx = _chartarea.left + chartoffsetx;
+            double chartx, charty;
+            if (y < y1)
+            {
+                double xpercent = (x - x1) / (x2 - x1);
+                double chartoffsetx = (_chartarea.right - _chartarea.left) * xpercent;
+                chartx = _chartarea.left + chartoffsetx;
 
-            double ypercent = (y - y1) / (y2 - y1);
-            double chartoffsety = (_chartarea.bottom - _chartarea.top) * ypercent;
-            double charty = _chartarea.bottom - chartoffsety;
+                double ypercent = (-1) * (y - y1) / (y2 - y1);
+                double chartoffsety = (_chartarea.bottom - _chartarea.top) * ypercent;
+                charty = _chartarea.top - chartoffsety;
+            }
+            else if (y > y2)
+            {
+                double xpercent = (x - x1) / (x2 - x1);
+                double chartoffsetx = (_chartarea.right - _chartarea.left) * xpercent;
+                chartx = _chartarea.left + chartoffsetx;
+
+                double ypercent = (y - y1) / (y2 - y1) - 1;
+                double chartoffsety = (_chartarea.bottom - _chartarea.top) * ypercent;
+                charty = _chartarea.bottom + chartoffsety;
+            }
+            else
+            {
+                double xpercent = (x - x1) / (x2 - x1);
+                double chartoffsetx = (_chartarea.right - _chartarea.left) * xpercent;
+                chartx = _chartarea.left + chartoffsetx;
+
+                double ypercent = (y - y1) / (y2 - y1);
+                double chartoffsety = (_chartarea.bottom - _chartarea.top) * ypercent;
+                charty = _chartarea.bottom - chartoffsety;
+            }
 
             return new Point() { x = chartx, y = charty };
         }
@@ -445,7 +587,7 @@ namespace PolyAxisGraphs_Backend
             double xintervall = _chartarea.width / (double)gridintervallcount;
             double yintervall = _chartarea.height / (double)gridintervallcount;
             double numintervall = (double)(x2 - x1) / (double)gridintervallcount;
-            if(xintervall < 1 ||  yintervall < fontsize) String.Format("gridintervall too large to display graph. choose smaller chartgridintervall.\nAddChart(): yintervall {0}, fontsize {1}, xintervall {2}", yintervall, fontsize, xintervall);
+            if(xintervall < 1 ||  yintervall < fontsize) return String.Format("gridintervall too large to display graph. choose smaller chartgridintervall.\nAddChart(): yintervall {0}, fontsize {1}, xintervall {2}", yintervall, fontsize, xintervall);
             
             //Add Y Axis
             Point start = new Point() { x = _chartarea.left, y = _chartarea.top };
@@ -454,7 +596,7 @@ namespace PolyAxisGraphs_Backend
             AddLine(start, end, Color.Black, 1);
             if (fontsize > (canvasheight - 1) - (end.y + 1)) fontsize = (canvasheight - 1) - (end.y + 1) - 1;
             AddText(start.x - xintervall / 2, start.x + xintervall / 2, end.y + 1, canvasheight - 1, text.ToString(), fontsize);
-            while(start.x <= _chartarea.right)
+            for(int i = 0; i < gridintervallcount; i++)
             {
                 start.x += xintervall;
                 end.x += xintervall;
@@ -470,7 +612,7 @@ namespace PolyAxisGraphs_Backend
             start = new Point() { x = _chartarea.left, y = _chartarea.bottom };
             end = new Point() { x = _chartarea.right, y = _chartarea.bottom };
             AddLine(start, end, Color.Black, 1);
-            while(start.y > _chartarea.top)
+            for (int i = 0; i < gridintervallcount; i++)
             {
                 start.y -= yintervall;
                 end.y -= yintervall;
