@@ -53,22 +53,13 @@ namespace PolyAxisGraphs_Backend
         }
 
         /// <summary>
-        /// point on series.
-        /// </summary>
-        public struct Seriespoint
-        {
-            public Series series;
-            public Point point;
-        }
-
-        /// <summary>
         /// all seriespoints with corresponding chartpoint of series.
         /// </summary>
         public struct SeriesData
         {
             public Series series;
-            public List<Point> seriespoint;
-            public List<Point> chartpoint;
+            public Point seriespoint;
+            public Point chartpoint;
         }
 
         /// <summary>
@@ -195,24 +186,15 @@ namespace PolyAxisGraphs_Backend
         /// </summary>
         /// <param name="point">point on canvas.</param>
         /// <returns>corresponding point of series. returns null if no point on any series found or if canvaspoint outside of chartarea.</returns>
-        public Seriespoint? TranslateChartPointToSeriesPoint(Point point)
+        public SeriesData? TranslateChartPointToSeriesPoint(Point point)
         {
             if(point.x < _chartarea.left || point.x > _chartarea.right || point.y < _chartarea.top || point.y > _chartarea.bottom) return null;
 
-            foreach (var _series in _seriesdata)
+            foreach(var data in _seriesdata)
             {
-                if (_series.series.active)
+                if(point.x == data.chartpoint.x && point.y == data.chartpoint.y)
                 {
-                    for (int i = 0; i < _series.seriespoint.Count && i < _series.chartpoint.Count; i++)
-                    {
-                        var seriespoint = _series.seriespoint[i];
-                        var chartpoint = _series.chartpoint[i];
-                        if (chartpoint.x == point.x && chartpoint.y == point.y) return new Seriespoint()
-                        {
-                            series = _series.series,
-                            point = seriespoint,
-                        };
-                    }
+                    return data;
                 }
             }
 
@@ -351,7 +333,6 @@ namespace PolyAxisGraphs_Backend
             {
                 Point? seriesstart = null;
                 int i = 0;
-                SeriesData sd = new SeriesData() { series = series, chartpoint = new List<Point>(), seriespoint = new List<Point>() };
                 while(seriesstart is null && i < seriespoints.Count)
                 {
                     seriesstart = TranslateSeriesPointToChartPoint(seriespoints[i].x, seriespoints[i].y, x1, x2, series.setmin, series.setmax);
@@ -359,8 +340,7 @@ namespace PolyAxisGraphs_Backend
                 }
                 if (seriesstart is not null)
                 {
-                    sd.seriespoint.Add(seriespoints[i - 1]);
-                    sd.chartpoint.Add((Point)seriesstart);
+                    _seriesdata.Add(new SeriesData() { series = series, seriespoint = seriespoints[i-1], chartpoint = (Point)seriesstart });
                     while (i < seriespoints.Count)
                     {
                         var seriesend = TranslateSeriesPointToChartPoint(seriespoints[i].x, seriespoints[i].y, x1, x2, series.setmin, series.setmax);
@@ -368,12 +348,10 @@ namespace PolyAxisGraphs_Backend
                         {
                             AddLine((Point)seriesstart, (Point)seriesend, series.color, 1);
                             seriesstart = seriesend;
-                            sd.seriespoint.Add(seriespoints[i]);
-                            sd.chartpoint.Add((Point)seriesstart);
+                            _seriesdata.Add(new SeriesData() { series = series, seriespoint = seriespoints[i], chartpoint = (Point)seriesstart });
                         }
                         i++;
                     }
-                    _seriesdata.Add(sd);
                 }
             }
 
@@ -396,7 +374,6 @@ namespace PolyAxisGraphs_Backend
                 {
                     Point? functionstart = null;
                     int i = 0;
-                    SeriesData sd = new SeriesData() { series = series, chartpoint = new List<Point>(), seriespoint = new List<Point>() };
                     while (functionstart is null && i < functionpoints.Count)
                     {
                         functionstart = TranslateSeriesPointToChartPoint(functionpoints[i].x, functionpoints[i].y, x1, x2, series.setmin, series.setmax);
@@ -405,8 +382,7 @@ namespace PolyAxisGraphs_Backend
                     if (functionstart is not null)
                     {
                         bool draw = true;
-                        sd.seriespoint.Add(functionpoints[i - 1]);
-                        sd.chartpoint.Add((Point)functionstart);
+                        _seriesdata.Add(new SeriesData() { series = series, seriespoint = functionpoints[i - 1], chartpoint = (Point)functionstart });
                         while (i < functionpoints.Count)
                         {
                             var functionend = TranslateSeriesPointToChartPoint(functionpoints[i].x, functionpoints[i].y, x1, x2, series.setmin, series.setmax);
@@ -415,19 +391,16 @@ namespace PolyAxisGraphs_Backend
                                 AddLine((Point)functionstart, (Point)functionend, series.color, 0.5);
                                 functionstart = functionend;
                                 draw = false;
-                                sd.seriespoint.Add(functionpoints[i]);
-                                sd.chartpoint.Add((Point)functionstart);
+                                _seriesdata.Add(new SeriesData() { series = series, seriespoint = functionpoints[i], chartpoint = (Point)functionstart });
                             }
                             else if (functionend is not null && !draw)
                             {
                                 draw = true;
-                                sd.seriespoint.Add(functionpoints[i]);
-                                sd.chartpoint.Add((Point)functionstart);
+                                _seriesdata.Add(new SeriesData() { series = series, seriespoint = functionpoints[i - 1], chartpoint = (Point)functionstart });
                             }
                             i++;
                         }
                     }
-                    _seriesdata.Add(sd);
                 }
             }
 
