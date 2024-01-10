@@ -548,7 +548,7 @@ namespace PolyAxisGraphs_Backend
 
                 double ypercent = (-1) * (y - y1) / (y2 - y1);
                 double chartoffsety = (_chartarea.bottom - _chartarea.top) * ypercent;
-                charty = _chartarea.top - chartoffsety;
+                charty = _chartarea.bottom + chartoffsety;
             }
             else if (y > y2)
             {
@@ -558,7 +558,7 @@ namespace PolyAxisGraphs_Backend
 
                 double ypercent = (y - y1) / (y2 - y1) - 1;
                 double chartoffsety = (_chartarea.bottom - _chartarea.top) * ypercent;
-                charty = _chartarea.bottom + chartoffsety;
+                charty = _chartarea.top - chartoffsety;
             }
             else
             {
