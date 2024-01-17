@@ -436,7 +436,7 @@ namespace PolyAxisGraphs_Backend
             reader.Disconnect();
         }
 
-        private (int min, int max) FindMinimum(List<double> values)
+        private (int min, int max) FindMinimumAndMaximum(List<double> values)
         {
             double mmin = double.MaxValue;
             double mmax = double.MinValue;
