@@ -435,5 +435,18 @@ namespace PolyAxisGraphs_Backend
             }
             reader.Disconnect();
         }
+
+        private (int min, int max) FindMinimum(List<double> values)
+        {
+            double mmin = double.MaxValue;
+            double mmax = double.MinValue;
+            foreach(var value in values)
+            {
+                if(value < mmin) mmin = value;
+                if(value > mmax) mmax = value;
+            }
+            (int min, int max) ret = new((int)Math.Floor(mmin), (int)Math.Ceiling(mmax));
+            return ret;
+        }
     }
 }
