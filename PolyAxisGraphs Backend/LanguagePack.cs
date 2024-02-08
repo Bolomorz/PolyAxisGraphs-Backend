@@ -70,6 +70,48 @@ namespace PolyAxisGraphs_Backend
         }
 
         /// <summary>
+        /// create default EN.lng
+        /// </summary>
+        public static void CreateDefault()
+        {
+            if (File.Exists(@"LanguageFile\EN.lng")) File.Delete(@"LanguageFile\EN.lng");
+
+            using (StreamWriter writer = new StreamWriter(@"LanguageFile\EN.lng", append: true))
+            {
+                writer.WriteLine("#Language File for Language <EN>\r\n#\r\n#for commenting use # as first character in line\r\n#attributes in format:\t\tattribute=value\r\n#value cannot contain '='! (only one separator '=' per line allowed)\r\n#one attribute per line\r\n#");
+                writer.WriteLine("btopenfile=...");
+                writer.WriteLine("btsavefilepng=save as picture");
+                writer.WriteLine("btapply=apply");
+                writer.WriteLine("btdiscard=discard");
+                writer.WriteLine("btreset=reset");
+                writer.WriteLine("btreturn=return");
+                writer.WriteLine("btcalc=calculate");
+                writer.WriteLine("btfuncactive=regression function (active)");
+                writer.WriteLine("btfuncnotactive=regression function (not active)");
+                writer.WriteLine("tbopenfile=open data file");
+                writer.WriteLine("tbentertitle=enter chart title here");
+                writer.WriteLine("tbtitlesettingsx=settings x axis");
+                writer.WriteLine("tbtitlesettingsy=settings y series");
+                writer.WriteLine("tbtitlesettingss=settings for current function");
+                writer.WriteLine("tbtitlesettingsfunc=settings regression function for");
+                writer.WriteLine("tbtitlesettingscurrent=current function");
+                writer.WriteLine("tbtitlesettingscreate=calculate function");
+                writer.WriteLine("tbnamesettingsx=name of x axis");
+                writer.WriteLine("tbnamesettingsy=name of y series");
+                writer.WriteLine("tbcolorsettingsy=color of series");
+                writer.WriteLine("tbminvalue=min value");
+                writer.WriteLine("tbmaxvalue=max value");
+                writer.WriteLine("tbfunction=function");
+                writer.WriteLine("tbftype=function type");
+                writer.WriteLine("tbprecision=precision (decimal places)");
+                writer.WriteLine("tborder=order");
+                writer.WriteLine("tbselect=select type");
+                writer.WriteLine("cbseries=show series");
+                writer.WriteLine("cbfunc=show function");
+            }
+        }
+
+        /// <summary>
         /// find value of variable with specified name.
         /// </summary>
         /// <param name="name">specified name of variable.</param>
