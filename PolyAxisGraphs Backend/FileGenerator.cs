@@ -67,6 +67,26 @@ namespace PolyAxisGraphs_Backend
         }
 
         /// <summary>
+        /// generate default test file.
+        /// </summary>
+        /// <param name="_file"></param>
+        public static void GenerateDefault(string _file)
+        {
+            File.WriteAllText(_file, "NM AMP VOL POW EFF RPM");
+            File.AppendAllText(_file, "0 1 4 4 0.5 2000");
+            File.AppendAllText(_file, "1 2 6 12 0.6 4000");
+            File.AppendAllText(_file, "2 3 8 24 0.7 6000");
+            File.AppendAllText(_file, "3 4 12 48 0.8 4000");
+            File.AppendAllText(_file, "4 5 14 70 0.9 2000");
+            File.AppendAllText(_file, "5 6 16 96 0.95 4000");
+            File.AppendAllText(_file, "6 5 18 90 0.9 6000");
+            File.AppendAllText(_file, "7 5 20 100 0.85 4000");
+            File.AppendAllText(_file, "8 4 22 88 0.75 2000");
+            File.AppendAllText(_file, "9 3 24 72 0.65 5000");
+            File.AppendAllText(_file, "10 2 26 52 0.1 2000");
+        }
+
+        /// <summary>
         /// generate data and file of specified file type.
         /// </summary>
         /// <param name="type">file type of data file.</param>
