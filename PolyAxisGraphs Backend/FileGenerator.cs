@@ -176,11 +176,11 @@ namespace PolyAxisGraphs_Backend
         private string? FindFileName(FileType type)
         {
             int i = 0;
-            while (settings.initialdirectory is not null)
+            while (settings.FindValueFromKey("initialdirectory") is not null)
             {
                 string? path = null;
-                if (type == FileType.txt) path = settings.initialdirectory + "TestFile" + i + ".txt";
-                else if(type == FileType.csv) path = settings.initialdirectory + "TestFile" + i + ".csv";
+                if (type == FileType.txt) path = settings.FindValueFromKey("initialdirectory") + "TestFile" + i + ".txt";
+                else if(type == FileType.csv) path = settings.FindValueFromKey("initialdirectory") + "TestFile" + i + ".csv";
                 if(path is not null)
                 {
                     if (!File.Exists(path))

@@ -29,6 +29,11 @@ namespace PolyAxisGraphs_Backend
         private Dictionary<string, string> SettingPairs { get; set; }
 
         /// <summary>
+        /// currently opened language
+        /// </summary>
+        public LanguagePack? currentlang { get; set; }
+
+        /// <summary>
         /// path to opened file.
         /// </summary>
         private string file { get; set; }
@@ -42,6 +47,8 @@ namespace PolyAxisGraphs_Backend
             file = _file;
             SettingPairs = new Dictionary<string, string>();
             ReadSettings();
+            var def = FindValueFromKey("defaultlanguagepath");
+            if (def != null) currentlang = new LanguagePack(def);
         }
 
         /// <summary>
@@ -63,7 +70,7 @@ namespace PolyAxisGraphs_Backend
                 writer.WriteLine("initialdirectory=" + "DataFiles");
                 writer.WriteLine("#");
                 writer.WriteLine("#default language, language file of default language");
-                writer.WriteLine("defaultlanguage=" + @"LanguageFiles\EN.lng");
+                writer.WriteLine("defaultlanguagepath=" + @"LanguageFiles\EN.lng");
                 writer.WriteLine("#");
                 writer.WriteLine("controlfontsize=" + 15);
                 writer.WriteLine("chartfontsize=" + 10);
@@ -135,7 +142,7 @@ namespace PolyAxisGraphs_Backend
                 writer.WriteLine("initialdirectory=" + FindValueFromKey("initialdirectory"));
                 writer.WriteLine("#");
                 writer.WriteLine("#default language, language file of default language");
-                writer.WriteLine("defaultlanguage=" + FindValueFromKey("defaultlanguage"));
+                writer.WriteLine("defaultlanguagepath=" + FindValueFromKey("defaultlanguagepath"));
                 writer.WriteLine("#");
                 writer.WriteLine("controlfontsize=" + FindValueFromKey("controlfontsize"));
                 writer.WriteLine("chartfontsize=" + FindValueFromKey("chartfontsize"));

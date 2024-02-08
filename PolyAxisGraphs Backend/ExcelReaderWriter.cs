@@ -59,9 +59,9 @@ namespace PolyAxisGraphs_Backend
         {
             int i = 0;
 
-            while (set.initialdirectory is not null)
+            while (set.FindValueFromKey("initialdirectory") is not null)
             {
-                string path = set.initialdirectory + "TestExcel" + i + ".xlsx";
+                string path = set.FindValueFromKey("initialdirectory") + "TestExcel" + i + ".xlsx";
                 if (!File.Exists(path))
                 {
                     return path;

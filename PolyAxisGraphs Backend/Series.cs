@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using MathNet.Numerics.Distributions;
+using System.ComponentModel;
 using System.Drawing;
 
 namespace PolyAxisGraphs_Backend
@@ -133,9 +134,10 @@ namespace PolyAxisGraphs_Backend
             CompareMin(y);
             setmin = min;
             setmax = max;
-            if (settings.chartgridinterval is not null)
+            var cgi = settings.FindValueFromKey("chartgridinterval");
+            if (cgi is not null)
             {
-                interval = (double)(setmax - setmin) / (double)settings.chartgridinterval;
+                interval = (double)(setmax - setmin) / PolyAxisGraph.ReadStringToDouble(cgi);
             }
             else
             {
@@ -152,9 +154,10 @@ namespace PolyAxisGraphs_Backend
             if(_max > setmin)
             {
                 setmax = _max;
-                if (settings.chartgridinterval is not null)
+                var cgi = settings.FindValueFromKey("chartgridinterval");
+                if (cgi is not null)
                 {
-                    interval = (double)(setmax - setmin) / (double)settings.chartgridinterval;
+                    interval = (double)(setmax - setmin) / PolyAxisGraph.ReadStringToDouble(cgi);
                 }
                 else
                 {
@@ -172,9 +175,10 @@ namespace PolyAxisGraphs_Backend
             if(_min < setmax)
             {
                 setmin = _min;
-                if (settings.chartgridinterval is not null)
+                var cgi = settings.FindValueFromKey("chartgridinterval");
+                if (cgi is not null)
                 {
-                    interval = (double)(setmax - setmin) / (double)settings.chartgridinterval;
+                    interval = (double)(setmax - setmin) / PolyAxisGraph.ReadStringToDouble(cgi);
                 }
                 else
                 {
@@ -189,9 +193,10 @@ namespace PolyAxisGraphs_Backend
         public void ResetMax()
         {
             setmax = max;
-            if (settings.chartgridinterval is not null)
+            var cgi = settings.FindValueFromKey("chartgridinterval");
+            if (cgi is not null)
             {
-                interval = (double)(setmax - setmin) / (double)settings.chartgridinterval;
+                interval = (double)(setmax - setmin) / PolyAxisGraph.ReadStringToDouble(cgi);
             }
             else
             {
@@ -205,9 +210,10 @@ namespace PolyAxisGraphs_Backend
         public void ResetMin()
         {
             setmin = min;
-            if (settings.chartgridinterval is not null)
+            var cgi = settings.FindValueFromKey("chartgridinterval");
+            if (cgi is not null)
             {
-                interval = (double)(setmax - setmin) / (double)settings.chartgridinterval;
+                interval = (double)(setmax - setmin) / PolyAxisGraph.ReadStringToDouble(cgi);
             }
             else
             {

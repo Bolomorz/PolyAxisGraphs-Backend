@@ -242,22 +242,27 @@ namespace PolyAxisGraphs_Backend
             var _err = CalculateChartAreas();
             if (_err is not null) return new ChartData() { err = _err};
 
-            double fontsize = (settings.chartfontsize is null) ? 10 : (double)settings.chartfontsize;
-            double titlefontsize = (settings.charttitlefontsize is null) ? 20 : (double)settings.charttitlefontsize;
+            var cfs = settings.FindValueFromKey("chartfontsize");
+            var ctfs = settings.FindValueFromKey("charttitlefontsize");
+            var cgi = settings.FindValueFromKey("chartgridinterval");
+            var yaw = settings.FindValueFromKey("yaxiswidth");
+
+            double fontsize = (cfs is null) ? 10 : PolyAxisGraph.ReadStringToDouble(cfs);
+            double titlefontsize = (ctfs is null) ? 20 : PolyAxisGraph.ReadStringToDouble(ctfs);
             AddTitle(titlefontsize, pag.charttitle);
             AddDate(fontsize);
 
-            _err = (settings.chartgridinterval is null) ? AddChart(20, pag.x1, pag.x2, fontsize) : AddChart((int)settings.chartgridinterval, pag.x1, pag.x2, fontsize);
+            _err = (cgi is null) ? AddChart(20, pag.x1, pag.x2, fontsize) : AddChart(PolyAxisGraph.ReadStringToInt(cgi), pag.x1, pag.x2, fontsize);
             if (_err is not null) return new ChartData() { err = _err };
             Debug.WriteLine(_err);
 
             double xarea = _yaxisarea.left;
-            double xareaintervall = (settings.yaxiswidth is null) ? 20 : (double)settings.yaxiswidth;
+            double xareaintervall = (yaw is null) ? 20 : PolyAxisGraph.ReadStringToDouble(yaw);
             foreach(var series in pag.series)
             {
                 if(series.active)
                 {
-                    _err = (settings.chartgridinterval is null) ? AddSeries(series, 20, pag.x1, pag.x2, fontsize, xarea) : AddSeries(series, (int)settings.chartgridinterval, pag.x1, pag.x2, fontsize, xarea);
+                    _err = (cgi is null) ? AddSeries(series, 20, pag.x1, pag.x2, fontsize, xarea) : AddSeries(series, PolyAxisGraph.ReadStringToInt(cgi), pag.x1, pag.x2, fontsize, xarea);
                     if (_err is not null) return new ChartData() { err = _err };
                     Debug.WriteLine(_err);
                     xarea += xareaintervall;
@@ -300,10 +305,10 @@ namespace PolyAxisGraphs_Backend
             Point start = new Point() { x = xarea, y = _yaxisarea.bottom };
             Point end = new Point() { x = xarea, y = _yaxisarea.top };
             AddLine(start, end, series.color, 1);
-
+            var yaw = settings.FindValueFromKey("yaxiswidth");
             Debug.WriteLine("<<< add y axis grid + text");
             //Add Y Axis Grid + Text
-            double length = (settings.yaxiswidth is null) ? 5 : (double)settings.yaxiswidth/4;
+            double length = (yaw is null) ? 5 : PolyAxisGraph.ReadStringToDouble(yaw)/4;
             start = new Point() { x = xarea, y = _yaxisarea.bottom };
             end = new Point() { x = xarea + length, y = _yaxisarea.bottom };
             double text = Math.Round(series.setmin, 2);
@@ -678,8 +683,8 @@ namespace PolyAxisGraphs_Backend
              * chartarea    (x: d - 90%     | y: 11% - 95%)
              * functionarea (x: 91% - 99 %  | y: 11% - 95%)
              */
-
-            double d = (settings.yaxiswidth is null) ? seriescount * 20 : seriescount * (double)settings.yaxiswidth;
+            var yaw = settings.FindValueFromKey("yaxiswidth");
+            double d = (yaw is null) ? seriescount * 20 : seriescount * PolyAxisGraph.ReadStringToDouble(yaw);
             if (d > 0.5 * canvaswidth) return "canvas area too small to display graph";
             if (d == 0) d = 20;
             d = d / canvaswidth;
